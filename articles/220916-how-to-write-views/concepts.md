@@ -46,10 +46,10 @@ template<class S, class I>
 
 ### `V` を `view` に対応させる
 
-- V が std::movable コンセプトを満たす
-- メンバ関数 begin() が定義されている
-- メンバ関数 end() が定義されている
-- V が std::ranges::view_interface を継承している
+- `V` が `std::movable` コンセプトを満たす
+- メンバ関数 `begin()` が定義されている
+- メンバ関数 `end()` が定義されている
+- `V` が `std::ranges::view_interface` を継承している
 
 ## `input_iterator`
 

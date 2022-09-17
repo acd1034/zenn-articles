@@ -153,3 +153,48 @@ public:
   ```
 
   :::
+
+  <!-- TODO: operator== の自動定義について説明する -->
+
+[sized_sentinel_for に対応する](link?)まで、`struct enumerate_view<View>::sentinel` は触りません。
+
+[本節の差分](link?)
+
+### `V` を `view` コンセプトに対応させる
+
+本節では `enumerate_view` に変更を加えます。
+`V` が `std::ranges::view` コンセプトを満たすには、以下の条件が成立する必要があります。
+
+- `V` が `std::movable` コンセプトを満たす
+
+  デフォルト定義されているため、特に行うことはありません。
+
+- メンバ関数 `begin()` が定義されている
+  ```cpp
+  constexpr iterator begin() { return {std::ranges::begin(base_), 0}; }
+  ```
+- メンバ関数 `end()` が定義されている
+  ```cpp
+  constexpr auto end() { return sentinel(std::ranges::end(base_)); }
+  ```
+- `V` が `std::ranges::view_interface` を継承している
+  ```cpp
+  struct enumerate_view : std::ranges::view_interface<enumerate_view<View>> {
+  ```
+
+また、`V` が `std::ranges::view` コンセプトを満たすためには不要ですが、慣例に倣い以下の変更を加えます。
+
+- `V` にデフォルトコンストラクタを追加する
+  ```cpp
+  enumerate_view() requires std::default_initializable<View> = default;
+  ```
+- `V` に以下の推定ガイドを追加する
+  ```cpp
+  template <class Range>
+  enumerate_view(Range&&) -> enumerate_view<std::views::all_t<Range>>;
+  ```
+  <!-- TODO: この推定ガイドの意義について説明する -->
+
+[sized_range に対応する](link?)まで、`enumerate_view` は触りません。
+
+[本節の差分](link?)
