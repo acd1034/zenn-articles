@@ -41,14 +41,14 @@ template<class S, class I>
     __WeaklyEqualityComparableWith<S, I>;
 ```
 
-- S が std::semiregular コンセプトを満たす (すなわちムーブ・コピー・デフォルト初期化可能である)
-- 等値比較演算子 i == s が定義されている
+- `S` が `std::semiregular` コンセプトを満たす (すなわちムーブ・コピー・デフォルト初期化可能である)
+- 等値比較演算子 `i == s` が定義されている
 
 ### `V` を `view` に対応させる
 
 - V が std::movable コンセプトを満たす
-- メンバ関数 begin が定義されている
-- メンバ関数 end が定義されている
+- メンバ関数 begin() が定義されている
+- メンバ関数 end() が定義されている
 - V が std::ranges::view_interface を継承している
 
 ## `input_iterator`

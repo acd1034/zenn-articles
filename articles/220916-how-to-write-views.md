@@ -61,7 +61,8 @@ private:
   std::ranges::sentinel_t<View> end_ = std::ranges::sentinel_t<View>();
 
 public:
-  constexpr explicit sentinel(std::ranges::sentinel_t<View> end) : end_(std::move(end)) {}
+  constexpr explicit sentinel(std::ranges::sentinel_t<View> end)
+    : end_(std::move(end)) {}
 };
 ```
 
@@ -81,7 +82,8 @@ public:
 
 ### `I` を `input_or_output_iterator` に対応させる
 
-`I` が `std::input_or_output_iterator` コンセプトを満たすには、以下の条件が成立する必要があります。
+本節では `struct enumerate_view<View>::iterator` に変更を加えます。
+`I` が `std::input_or_output_iterator` コンセプトを満たすには、以下の条件が成立する必要があります(以下 `I` 型のオブジェクトを `i` と記述します)。
 
 - **`I` が `std::movable` コンセプトを満たす**
 
@@ -112,3 +114,42 @@ public:
   ```
 
 [本節の差分](link?)
+
+### `S` を `sentinel_for` に対応させる
+
+本節では `struct enumerate_view<View>::sentinel` に変更を加えます。
+`S` が `std::sentinel_for<I>` コンセプトを満たすには、以下の条件が成立する必要があります(以下 `S` 型のオブジェクトを `s` と記述します)。
+
+- **`S` が `std::semiregular` コンセプトを満たす** (すなわちムーブ・コピー・デフォルト初期化可能である)
+
+  デフォルトコンストラクタが無いため追加します。
+
+  ```cpp
+  sentinel() requires
+    std::default_initializable<std::ranges::sentinel_t<View>> = default;
+  ```
+
+- **等値比較演算子 `i == s` が定義されている**
+
+  ```cpp
+  friend constexpr bool
+  operator==(const iterator& x, const sentinel& y) requires
+    std::sentinel_for<std::ranges::sentinel_t<View>,
+                      std::ranges::iterator_t<View>> {
+    return x.base() == y.end_;
+  }
+  ```
+
+  :::details base() について
+  実装のために `struct enumerate_view<View>::iterator` にメンバ関数 `base()` を追加しています。
+
+  ```cpp
+  constexpr const std::ranges::iterator_t<View>& base() const& noexcept {
+    return current_;
+  }
+  constexpr std::ranges::iterator_t<View> base() && {
+    return std::move(current_);
+  }
+  ```
+
+  :::
