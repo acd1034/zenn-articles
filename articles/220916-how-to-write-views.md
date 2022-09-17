@@ -49,8 +49,6 @@ private:
   std::size_t count_ = 0;
 
 public:
-  using difference_type = std::ranges::range_difference_t<View>;
-
   constexpr iterator(std::ranges::iterator_t<View> current, std::size_t count)
     : current_(std::move(current)), count_(std::move(count)) {}
 };
@@ -59,10 +57,58 @@ template <std::ranges::input_range View>
 requires std::ranges::view<View>
 struct enumerate_view<View>::sentinel {
 private:
-  //! 元となる view の終端
+  //! 元となる view の番兵イテレータ
   std::ranges::sentinel_t<View> end_ = std::ranges::sentinel_t<View>();
 
 public:
   constexpr explicit sentinel(std::ranges::sentinel_t<View> end) : end_(std::move(end)) {}
 };
 ```
+
+:::message
+節の最後にその節の変更点の差分をリンクで示しています。
+:::
+
+## `view` コンセプトに対応する
+
+実装する view の型を`V`、`V`のイテレータの型を`I`、`V`の番兵イテレータの型を`S`とします。この時`V`が`view` コンセプトを満たすには、以下の条件が成立する必要があります。
+
+- `V` が[後述の条件](link?)を満たす
+- `I` が `std::input_or_output_iterator` コンセプトを満たす
+- `S` が `std::sentinel_for<I>` コンセプトを満たす
+
+本節ではイテレータ、番兵イテレータ、view 本体の順に見ていきます。
+
+### `I` を `input_or_output_iterator` に対応させる
+
+`I` が `std::input_or_output_iterator` コンセプトを満たすには、以下の条件が成立する必要があります。
+
+- **`I` が `std::movable` コンセプトを満たす**
+
+  デフォルト定義されているため、特に行うことはありません。
+
+- **`I` に `typename I::difference_type` が定義されており、その型が符号付き整数型である**
+  ```cpp
+  using difference_type = std::ranges::range_difference_t<View>;
+  ```
+- **前置インクリメント `++i` が定義されており、返り値の型が `I&` である**
+  ```cpp
+  constexpr iterator& operator++() {
+    ++current_;
+    ++count_;
+    return *this;
+  }
+  ```
+- **後置インクリメント `i++` が定義されている**
+  ```cpp
+  constexpr void operator++(int) { ++*this; }
+  ```
+- **間接参照演算子 `*i` が定義されており、返り値の型が参照修飾できる**
+  ```cpp
+  constexpr std::pair<std::size_t, std::ranges::range_reference_t<View>> //
+  operator*() const {
+    return {count_, *current_};
+  }
+  ```
+
+[本節の差分](link?)

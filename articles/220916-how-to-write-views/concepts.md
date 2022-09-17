@@ -1,11 +1,10 @@
-### view→`view`
+## `view` コンセプトに対応する
 
-- V が std::movable コンセプトを満たす
-- メンバ関数 begin が定義されている
-- メンバ関数 end が定義されている
-- std::ranges::view_interface を継承している
+- `V` が[後述の条件](link?)を満たす
+- `I` が `std::input_or_output_iterator` コンセプトを満たす
+- `S` が `std::sentinel_for<I>` コンセプトを満たす
 
-### iterator→`input_or_output_iterator`
+### `I` を `input_or_output_iterator` に対応させる
 
 ```cpp
 template<class I>
@@ -26,13 +25,13 @@ concept input_or_output_iterator =
   std::weakly_incrementable<I>;
 ```
 
-- I が std::movable コンセプトを満たす
-- I に typename I::difference_type が定義されており、その型が符号付き整数型である
-- 前置インクリメント ++i が定義されており、返り値の型が I& である
-- 後置インクリメント i++ が定義されている
-- 間接参照演算子 \*i が定義されており、返り値の型が参照修飾できる
+- `I` が `std::movable` コンセプトを満たす
+- `I` に `typename I::difference_type` が定義されており、その型が符号付き整数型である
+- 前置インクリメント `++i` が定義されており、返り値の型が `I&` である
+- 後置インクリメント `i++` が定義されている
+- 間接参照演算子 `*i` が定義されており、返り値の型が参照修飾できる
 
-### sentinel→`sentinel_for`
+### `S` を `sentinel_for` に対応させる
 
 ```cpp
 template<class S, class I>
@@ -44,6 +43,13 @@ template<class S, class I>
 
 - S が std::semiregular コンセプトを満たす (すなわちムーブ・コピー・デフォルト初期化可能である)
 - 等値比較演算子 i == s が定義されている
+
+### `V` を `view` に対応させる
+
+- V が std::movable コンセプトを満たす
+- メンバ関数 begin が定義されている
+- メンバ関数 end が定義されている
+- V が std::ranges::view_interface を継承している
 
 ## `input_iterator`
 
