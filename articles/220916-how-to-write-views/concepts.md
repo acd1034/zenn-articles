@@ -137,3 +137,13 @@ template<class I>
 - イテレータと数値の減算 `i -= n` (戻り値の型が `I&`), `i - n` (戻り値の型が `I`) が定義されている
 - イテレータ間の減算 `-` が定義されており、戻り値の型が `typename I::difference_type` である
 - 添字演算子 `i[n]` が定義されており、戻り値の型が間接参照演算子 `*i` と同じである
+
+## `sized_sentinel_for`・`sized_range` に対応する
+
+sized_sentinel_for
+
+- イテレータと番兵イテレータ間の減算 `i - s, s - i` が定義されており、戻り値の型が `typename I::difference_type` である
+
+sized_range
+
+- `V` にメンバ関数 `size()` が定義されている

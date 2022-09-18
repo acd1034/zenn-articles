@@ -173,7 +173,7 @@ public:
 
   <!-- TODO: operator== の自動定義について説明する -->
 
-[sized_sentinel_for に対応する](link?)まで、`enumerate_view<View>::sentinel` は触りません。
+[`sized_sentinel_for`・`sized_range` に対応する](link?)まで、`enumerate_view<View>::sentinel` は触りません。
 
 [本節の差分](link?)
 
@@ -212,7 +212,7 @@ public:
   ```
   <!-- TODO: この推定ガイドの意義について説明する -->
 
-[sized_range に対応する](link?)まで、`enumerate_view` は触りません。
+[`sized_sentinel_for`・`sized_range` に対応する](link?)まで、`enumerate_view` は触りません。
 
 [本節の差分](link?)
 
@@ -421,3 +421,37 @@ public:
   ```
 
 [本節の差分](link?)
+
+## `sized_sentinel_for`・`sized_range` に対応する
+
+`S` が `std::sized_sentinel_for<I>` コンセプトを満たすには、以下の条件が成立する必要があります。
+
+- イテレータと番兵イテレータ間の減算 `i - s, s - i` が定義されており、戻り値の型が `typename I::difference_type` である
+  ```cpp
+  friend constexpr std::ranges::range_difference_t<View> //
+  operator-(const iterator& x, const sentinel& y) requires
+    std::sized_sentinel_for<std::ranges::sentinel_t<View>,
+                            std::ranges::iterator_t<View>> {
+    return x.base() - y.end_;
+  }
+  friend constexpr std::ranges::range_difference_t<View>
+  operator-(const sentinel& x, const iterator& y) requires
+    std::sized_sentinel_for<std::ranges::sentinel_t<View>,
+                            std::ranges::iterator_t<View>> {
+    return x.end_ - y.base();
+  }
+  ```
+
+`V` が `std::ranges::sized_range` コンセプトを満たすには、以下の条件が成立する必要があります。
+
+- `V` にメンバ関数 `size()` が定義されている
+  ```cpp
+  constexpr auto size() requires std::ranges::sized_range<View> {
+    return std::ranges::size(base_);
+  }
+  ```
+
+なお、`S` が `std::sized_sentinel_for<I>` コンセプトを満たすか否か、`V` が `std::ranges::sized_range` コンセプトを満たすか否かは、`I` の イテレータコンセプトとは独立に規定されています。そのため、`I` が `std::input_iterator` コンセプトから `std::random_access_iterator` コンセプトまでのどのコンセプトを満たすかに依らず、上記のメソッドは定義できます。
+
+[本節の差分](link?)
+
