@@ -11,6 +11,7 @@ published: false
 目標:
 
 - view の書き方を step by step で説明する
+  <!-- TODO: view→range adaptorに変更 -->
 
 ここでは例として`enumerate_view`を実装します。
 使用例:
@@ -259,10 +260,11 @@ public:
   ```
 
 - **`typename I::iterator_concept` が `std::forward_iterator_tag` を継承している**
-  ```cpp
-  using iterator_concept =
-    std::conditional_t<std::ranges::forward_range<View>,       std::forward_iterator_tag,
-    /* else */                                                 std::input_iterator_tag>;
+  ```diff cpp
+  - using iterator_concept = std::input_iterator_tag;
+  + using iterator_concept =
+  +   std::conditional_t<std::ranges::forward_range<View>,       std::forward_iterator_tag,
+  +   /* else */                                                 std::input_iterator_tag>;
   ```
 - **等値比較演算子 `==` が定義されている**
   ```cpp
@@ -277,6 +279,40 @@ public:
   operator++(int) requires std::ranges::forward_range<View> {
     auto tmp = *this;
     ++*this;
+    return tmp;
+  }
+  ```
+
+[本節の差分](link?)
+
+## `bidirectional_iterator` に対応する
+
+- **`I` が `std::forward_iterator` コンセプトを満たす**
+
+  上記で対応済みです。
+
+- **`typename I::iterator_concept` が `std::bidirectional_iterator_tag` を継承している**
+  ```cpp
+  using iterator_concept =
+    std::conditional_t<std::ranges::bidirectional_range<View>, std::bidirectional_iterator_tag,
+    std::conditional_t<std::ranges::forward_range<View>,       std::forward_iterator_tag,
+    /* else */                                                 std::input_iterator_tag>>;
+  ```
+- **前置デクリメント `--i` が定義されており、戻り値の型が `I&` である**
+  ```cpp
+  constexpr iterator&
+  operator--() requires std::ranges::bidirectional_range<View> {
+    --current_;
+    --count_;
+    return *this;
+  }
+  ```
+- **後置デクリメント `i--` が定義されており、戻り値の型が `I` である**
+  ```cpp
+  constexpr iterator
+  operator--(int) requires std::ranges::bidirectional_range<View> {
+    auto tmp = *this;
+    --*this;
     return tmp;
   }
   ```
