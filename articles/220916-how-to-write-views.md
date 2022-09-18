@@ -142,8 +142,7 @@ public:
   デフォルトコンストラクタが無いため追加します。
 
   ```cpp
-  sentinel() requires
-    std::default_initializable<std::ranges::sentinel_t<View>> = default;
+  sentinel() = default;
   ```
 
 - **等値比較演算子 `i == s` が定義されている**
@@ -531,7 +530,7 @@ iter_move(const iterator& x) noexcept(
 
 ## `common_range` に対応する
 
-`common_range` とは、イテレータと番兵イテレータの型が一致する range のことです。C++17 以前のイテレータではイテレータと番兵イテレータの型が一致することは前提とされていましたが、C++20 以降ではこの 2 者は必ずしも一致しないものとして扱われています。本節では元の view が `common_range` である場合に `enumerate_view` が `common_range` となるように、以下の変更を加えます。
+`common_range` とは、イテレータと番兵イテレータの型が一致する range のことです。C++17 以前のイテレータではイテレータと番兵イテレータの型が一致することは前提とされていましたが、C++20 以降ではこの 2 者は必ずしも一致しないものとして扱われています。本節では元の view が `common_range` である場合に `enumerate_view` が `common_range` となるよう、以下の変更を加えます。
 
 ```diff cpp
 - constexpr auto end() { return sentinel(std::ranges::end(base_)); }
