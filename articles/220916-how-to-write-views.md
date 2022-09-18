@@ -496,6 +496,33 @@ struct deduce_iterator_category<View> {
   };
 ```
 
+<!-- NOTE: http://eel.is/c++draft/iterator.cpp17 -->
 <!-- NOTE: https://cpprefjp.github.io/reference/iterator/iterator_traits.html -->
 
 [本節の差分](link?)
+
+## 必要に応じて iter_move を定義する
+
+ここでは非メンバ関数 `iter_move(i)` を手動で定義するが必要があるときについて説明します。
+
+`std::ranges::iter_move` は以下のように定義されています。
+
+- 実引数依存の名前探索によって `iter_move(std::forward<I>(i))` が見つかる場合、それを呼び出します
+- そうでなくて `*std::forward<I>(i)` が well-formed な左辺値の場合、`std::move(*std::forward<I>(i))` を呼び出します
+- そうでなくて `*std::forward<I>(i)` が well-formed な右辺値の場合、それを呼び出します
+- そうで無い場合、`std::ranges::iter_move(i)` は ill-formed です
+
+すなわち `iter_move(i)` を手動で定義しなくても、`std::ranges::iter_move` は `std::move(*std::forward<I>(i))` か `*std::forward<I>(i)` を選択して適切に右辺値を返します。
+
+しかし間接参照演算子 `*i` が左辺値を保持した右辺値(例えば `std::pair<T&, U&>` など)を返す場合に、上記のデフォルトの定義では上手くムーブすることができません。そのような場合に `iter_move(i)` を手動で定義します。
+
+`enumerate_view` の戻り値は `std::pair<std::size_t, std::ranges::range_reference_t<View>>` であるため、上記の場合に該当します。このとき `enumerate_view` の `iter_move(i)` は以下のように定義できます。
+
+```cpp
+friend constexpr std::pair<std::size_t,
+                           std::ranges::range_rvalue_reference_t<View>>
+iter_move(const iterator& x) noexcept(
+  noexcept(std::ranges::iter_move(x.current_))) {
+  return {x.count_, std::ranges::iter_move(x.current_)};
+}
+```
