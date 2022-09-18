@@ -455,3 +455,47 @@ public:
 
 [本節の差分](link?)
 
+<!-- TODO: ここからはオプショナルです、と書く? -->
+
+## iterator_category を定義する
+
+[`random_access_iterator` に対応する](link?)までで、元の view がイテレータコンセプトを満たす場合に `enumerate_view` が同じイテレータコンセプトを満たす方法を紹介しました。しかし、現在の `enumerate_view` は C++17 以前のイテレータ要件(規格では _Cpp17InputIterator_ などと呼ばれています)を満たしません。本節では `iterator_category` を定義することで C++17 以前のイテレータ要件を満足させます。
+
+元の view が C++17 以前のイテレータ要件を満たす場合に `V` が同じイテレータ要件を満たすには、`I` が下記の構造体 `deduce_iterator_category` を継承している必要があります。
+
+```cpp
+template <class View>
+struct deduce_iterator_category {};
+
+template <class View>
+requires requires {
+  typename std::iterator_traits<
+    std::ranges::iterator_t<View>>::iterator_category;
+}
+struct deduce_iterator_category<View> {
+  using iterator_category = typename std::iterator_traits<
+    std::ranges::iterator_t<View>>::iterator_category;
+};
+```
+
+ところが、`enumerate_view` は間接参照演算子 `*i` が左辺値参照を返さないため、_Cpp17InputIterator_ よりも強いイテレータ要件を満たしません。そのため `enumerate_view` の `deduce_iterator_category` は以下のように修正する必要があります。
+
+```diff cpp
+  template <class View>
+  struct deduce_iterator_category {};
+
+  template <class View>
+  requires requires {
+    typename std::iterator_traits<
+      std::ranges::iterator_t<View>>::iterator_category;
+  }
+  struct deduce_iterator_category<View> {
+-   using iterator_category = typename std::iterator_traits<
+-     std::ranges::iterator_t<View>>::iterator_category;
++   using iterator_category = std::input_iterator_tag;
+  };
+```
+
+<!-- NOTE: https://cpprefjp.github.io/reference/iterator/iterator_traits.html -->
+
+[本節の差分](link?)
