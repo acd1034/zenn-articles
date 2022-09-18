@@ -234,10 +234,49 @@ public:
   ```
 - **必要に応じて非メンバ関数 `iter_move(i)` が定義されている**
 
-  これについては少々難しいため [`iter_move` について](link?) で定義します。
-  `std::ranges::iter_move` にはデフォルトの定義が存在するため、定義は必須ではありません。
+  `std::ranges::iter_move` にはデフォルトの定義が存在するため、定義は必須ではありません。しかし手動で定義した方がよい場合があります。これについては [`iter_move` について](link?) で説明します。
   <!-- lvalue-referenceを保持する型(std::pair<std::size_t, T&>など)を返すイテレータは、iter_moveを定義した方がよい -->
   <!-- lvalue-referenceを保持する型 のことを proxy reference と呼ぶらしい -->
   <!-- TODO: iter_move はここで定義するか? 後ろで定義するか? -->
 
 [本節の差分](link?)
+
+## `forward_iterator` に対応する
+
+`I` が `std::forward_iterator` コンセプトを満たすには、以下の条件が成立する必要があります。
+
+- **`I` が `std::input_iterator` コンセプトを満たす**
+
+  上記で対応済みです。
+
+- **`I` が `std::semiregular` コンセプトを満たす**(すなわち上記(ムーブ可能)に加え、コピー・デフォルト初期化可能である)
+
+  デフォルトコンストラクタが無いため追加します。
+
+  ```cpp
+  iterator() requires
+    std::default_initializable<std::ranges::iterator_t<View>> = default;
+  ```
+
+- **`typename I::iterator_concept` が `std::forward_iterator_tag` を継承している**
+  ```cpp
+  using iterator_concept =
+    std::conditional_t<std::ranges::forward_range<View>,       std::forward_iterator_tag,
+    /* else */                                                 std::input_iterator_tag>;
+  ```
+- **等値比較演算子 `==` が定義されている**
+  ```cpp
+  friend constexpr bool operator==(const iterator& x, const iterator& y) //
+    requires std::equality_comparable<std::ranges::iterator_t<View>> {
+    return x.current_ == y.current_;
+  }
+  ```
+- **後置インクリメント `i++` の戻り値の型が `I` である**
+  ```cpp
+  constexpr iterator
+  operator++(int) requires std::ranges::forward_range<View> {
+    auto tmp = *this;
+    ++*this;
+    return tmp;
+  }
+  ```
