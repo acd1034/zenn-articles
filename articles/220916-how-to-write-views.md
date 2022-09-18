@@ -68,7 +68,7 @@ public:
 ```
 
 :::message
-節の最後にその節の変更点の差分をリンクで示しています。
+節の最後にその節の変更点の差分をリンクで示しています。コミットにはその節の変更点に対する単体テストも含まれます。
 :::
 
 :::message
@@ -526,3 +526,22 @@ iter_move(const iterator& x) noexcept(
   return {x.count_, std::ranges::iter_move(x.current_)};
 }
 ```
+
+[本節の差分](link?)
+
+## `common_range` に対応する
+
+`common_range` とは、イテレータと番兵イテレータの型が一致する range のことです。C++17 以前のイテレータではイテレータと番兵イテレータの型が一致することは前提とされていましたが、C++20 以降ではこの 2 者は必ずしも一致しないものとして扱われています。本節では元の view が `common_range` である場合に `enumerate_view` が `common_range` となるように、以下の変更を加えます。
+
+```diff cpp
+- constexpr auto end() { return sentinel(std::ranges::end(base_)); }
++ constexpr auto end() {
++   if constexpr (std::ranges::common_range<View> and //
++                 std::ranges::sized_range<View>)
++     return iterator(std::ranges::end(base_), std::ranges::size(base_));
++   else
++     return sentinel(std::ranges::end(base_));
++ }
+```
+
+[本節の差分](link?)
