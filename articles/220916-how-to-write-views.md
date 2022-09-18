@@ -33,8 +33,8 @@ private:
   //! 元となる view
   View base_ = View();
 
-  class iterator;
-  class sentinel;
+  struct iterator;
+  struct sentinel;
 
 public:
   constexpr enumerate_view(View base) : base_(std::move(base)) {}
@@ -283,20 +283,24 @@ public:
   }
   ```
 
+なお、後置インクリメントはほとんどの場合に上記のコードで定義できます(そのようなコードをボイラープレートと呼びます)。
 [本節の差分](link?)
 
 ## `bidirectional_iterator` に対応する
+
+`I` が `std::bidirectional_iterator` コンセプトを満たすには、以下の条件が成立する必要があります。
 
 - **`I` が `std::forward_iterator` コンセプトを満たす**
 
   上記で対応済みです。
 
 - **`typename I::iterator_concept` が `std::bidirectional_iterator_tag` を継承している**
-  ```cpp
-  using iterator_concept =
-    std::conditional_t<std::ranges::bidirectional_range<View>, std::bidirectional_iterator_tag,
-    std::conditional_t<std::ranges::forward_range<View>,       std::forward_iterator_tag,
-    /* else */                                                 std::input_iterator_tag>>;
+  ```diff cpp
+    using iterator_concept =
+  +   std::conditional_t<std::ranges::bidirectional_range<View>, std::bidirectional_iterator_tag,
+      std::conditional_t<std::ranges::forward_range<View>,       std::forward_iterator_tag,
+  -   /* else */                                                 std::input_iterator_tag>;
+  +   /* else */                                                 std::input_iterator_tag>>;
   ```
 - **前置デクリメント `--i` が定義されており、戻り値の型が `I&` である**
   ```cpp
@@ -316,3 +320,93 @@ public:
     return tmp;
   }
   ```
+
+なお、後置デクリメントはボイラープレートです。
+[本節の差分](link?)
+
+## `random_access_iterator` に対応する
+
+`I` が `std::random_access_iterator` コンセプトを満たすには、以下の条件が成立する必要があります(以下では `typename I::difference_type` 型のオブジェクトを `n` と記述しています)。
+
+- **`I` が `std::bidirectional_iterator` コンセプトを満たす**
+
+  上記で対応済みです。
+
+- **`typename I::iterator_concept` が `std::random_access_iterator_tag` を継承している**
+  ```diff cpp
+    using iterator_concept =
+  +   std::conditional_t<std::ranges::random_access_range<View>, std::random_access_iterator_tag,
+      std::conditional_t<std::ranges::bidirectional_range<View>, std::bidirectional_iterator_tag,
+      std::conditional_t<std::ranges::forward_range<View>,       std::forward_iterator_tag,
+  -   /* else */                                                 std::input_iterator_tag>>;
+  +   /* else */                                                 std::input_iterator_tag>>>;
+  ```
+- **比較演算子 `<, >, <=, =>` が定義されている**
+  ```cpp
+  friend constexpr bool operator<(const iterator& x, const iterator& y) //
+    requires std::ranges::random_access_range<View> {
+    return x.current_ < y.current_;
+  }
+  friend constexpr bool operator>(const iterator& x, const iterator& y) //
+    requires std::ranges::random_access_range<View> {
+    return y < x;
+  }
+  friend constexpr bool operator<=(const iterator& x, const iterator& y) //
+    requires std::ranges::random_access_range<View> {
+    return not(y < x);
+  }
+  friend constexpr bool operator>=(const iterator& x, const iterator& y) //
+    requires std::ranges::random_access_range<View> {
+    return not(x < y);
+  }
+  ```
+- **イテレータと数値の加算 `i += n`** (戻り値の型が `I&`), **`i + n, n + i`** (戻り値の型が `I`) **が定義されている**
+  ```cpp
+  constexpr iterator& operator+=(difference_type n) //
+    requires std::ranges::random_access_range<View> {
+    current_ += n;
+    count_ += n;
+    return *this;
+  }
+  friend constexpr iterator operator+(iterator x, difference_type n) //
+    requires std::ranges::random_access_range<View> {
+    x += n;
+    return x;
+  }
+  friend constexpr iterator operator+(difference_type n, iterator x) //
+    requires std::ranges::random_access_range<View> {
+    x += n;
+    return x;
+  }
+  ```
+- **イテレータと数値の減算 `i -= n`** (戻り値の型が `I&`), **`i - n`** (戻り値の型が `I`) **が定義されている**
+  ```cpp
+  constexpr iterator& operator-=(difference_type n) //
+    requires std::ranges::random_access_range<View> {
+    return *this += -n;
+  }
+  friend constexpr iterator operator-(iterator x, difference_type n) //
+    requires std::ranges::random_access_range<View> {
+    x -= n;
+    return x;
+  }
+  ```
+- **イテレータ間の減算 `-` が定義されており、戻り値の型が `typename I::difference_type` である**
+  ```cpp
+  friend constexpr difference_type //
+  operator-(const iterator& x, const iterator& y) requires
+    std::ranges::random_access_range<View> {
+    return x.current_ - y.current_;
+  }
+  ```
+- **添字演算子 `i[n]` が定義されており、戻り値の型が間接参照演算子 `*i` と同じである**
+  ```cpp
+  constexpr std::pair<std::size_t, std::ranges::range_reference_t<View>>
+  operator[](difference_type n) const //
+    requires std::ranges::random_access_range<View> {
+    return *(*this + n);
+  }
+  ```
+
+なお、`operator<`, `operator+=`, イテレータ間の減算 `-` **以外**はボイラープレートです。
+[本節の差分](link?)
