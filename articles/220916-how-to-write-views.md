@@ -409,4 +409,15 @@ public:
   ```
 
 なお、`operator<`, `operator+=`, イテレータ間の減算 `-` **以外**はボイラープレートです。
+また、`I` が `std::random_access_iterator` コンセプトを満たすためには不要ですが、慣例に倣い以下の変更を加えます。
+
+- **`I` に三方比較演算子 `<=>` を追加する**
+  ```cpp
+  friend constexpr auto operator<=>(const iterator& x, const iterator& y) //
+    requires std::ranges::random_access_range<View> and                   //
+    std::three_way_comparable<std::ranges::iterator_t<View>> {
+    return x.current_ <=> y.current_;
+  }
+  ```
+
 [本節の差分](link?)
