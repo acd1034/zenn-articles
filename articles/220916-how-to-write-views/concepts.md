@@ -147,3 +147,7 @@ sized_sentinel_for
 sized_range
 
 - `V` にメンバ関数 `size()` が定義されている
+
+## _simple-view_ に対応する
+
+_simple-view_ とは、ある種の range を表す説明専用(標準ライブラリの内部実装で用いられており、表には現れない)コンセプトです。const 修飾後も range であり、かつ const 修飾前のイテレータ・番兵イテレータの型と、修飾後のイテレータ・番兵イテレータの型が一致するような range を表します。
