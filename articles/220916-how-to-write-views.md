@@ -18,7 +18,7 @@ published: false
 ```cpp
 std::vector<char> v{'a', 'b', 'c'};
 for (auto&& [index, value] : enumerate_view(v))
-  std::cout << index << ":" << value << ","; // output: 0:a,1:b,2:c,
+  std::cout << index << ':' << value << ','; // output: 0:a,1:b,2:c,
 ```
 
 出発点:
@@ -82,7 +82,7 @@ public:
 
 ### `I` を `input_or_output_iterator` に対応させる
 
-本節では `struct enumerate_view<View>::iterator` に変更を加えます。
+本節では `enumerate_view<View>::iterator` に変更を加えます。
 `I` が `std::input_or_output_iterator` コンセプトを満たすには、以下の条件が成立する必要があります(以下 `I` 型のオブジェクトを `i` と記述します)。
 
 - **`I` が `std::movable` コンセプトを満たす**
@@ -93,7 +93,7 @@ public:
   ```cpp
   using difference_type = std::ranges::range_difference_t<View>;
   ```
-- **前置インクリメント `++i` が定義されており、返り値の型が `I&` である**
+- **前置インクリメント `++i` が定義されており、戻り値の型が `I&` である**
   ```cpp
   constexpr iterator& operator++() {
     ++current_;
@@ -105,7 +105,7 @@ public:
   ```cpp
   constexpr void operator++(int) { ++*this; }
   ```
-- **間接参照演算子 `*i` が定義されており、返り値の型が参照修飾できる**
+- **間接参照演算子 `*i` が定義されており、戻り値の型が参照修飾できる**
   ```cpp
   constexpr std::pair<std::size_t, std::ranges::range_reference_t<View>> //
   operator*() const {
@@ -117,7 +117,7 @@ public:
 
 ### `S` を `sentinel_for` に対応させる
 
-本節では `struct enumerate_view<View>::sentinel` に変更を加えます。
+本節では `enumerate_view<View>::sentinel` に変更を加えます。
 `S` が `std::sentinel_for<I>` コンセプトを満たすには、以下の条件が成立する必要があります(以下 `S` 型のオブジェクトを `s` と記述します)。
 
 - **`S` が `std::semiregular` コンセプトを満たす** (すなわちムーブ・コピー・デフォルト初期化可能である)
@@ -141,7 +141,7 @@ public:
   ```
 
   :::details base() について
-  実装のために `struct enumerate_view<View>::iterator` にメンバ関数 `base()` を追加しています。
+  実装のために `enumerate_view<View>::iterator` にメンバ関数 `base()` を追加しています。
 
   ```cpp
   constexpr const std::ranges::iterator_t<View>& base() const& noexcept {
@@ -156,7 +156,7 @@ public:
 
   <!-- TODO: operator== の自動定義について説明する -->
 
-[sized_sentinel_for に対応する](link?)まで、`struct enumerate_view<View>::sentinel` は触りません。
+[sized_sentinel_for に対応する](link?)まで、`enumerate_view<View>::sentinel` は触りません。
 
 [本節の差分](link?)
 
@@ -165,30 +165,30 @@ public:
 本節では `enumerate_view` に変更を加えます。
 `V` が `std::ranges::view` コンセプトを満たすには、以下の条件が成立する必要があります。
 
-- `V` が `std::movable` コンセプトを満たす
+- **`V` が `std::movable` コンセプトを満たす**
 
   デフォルト定義されているため、特に行うことはありません。
 
-- メンバ関数 `begin()` が定義されている
+- **メンバ関数 `begin()` が定義されている**
   ```cpp
   constexpr iterator begin() { return {std::ranges::begin(base_), 0}; }
   ```
-- メンバ関数 `end()` が定義されている
+- **メンバ関数 `end()` が定義されている**
   ```cpp
   constexpr auto end() { return sentinel(std::ranges::end(base_)); }
   ```
-- `V` が `std::ranges::view_interface` を継承している
+- **`V` が `std::ranges::view_interface` を継承している**
   ```cpp
   struct enumerate_view : std::ranges::view_interface<enumerate_view<View>> {
   ```
 
 また、`V` が `std::ranges::view` コンセプトを満たすためには不要ですが、慣例に倣い以下の変更を加えます。
 
-- `V` にデフォルトコンストラクタを追加する
+- **`V` にデフォルトコンストラクタを追加する**
   ```cpp
   enumerate_view() requires std::default_initializable<View> = default;
   ```
-- `V` に以下の推定ガイドを追加する
+- **`V` に以下の推定ガイドを追加する**
   ```cpp
   template <class Range>
   enumerate_view(Range&&) -> enumerate_view<std::views::all_t<Range>>;
@@ -196,5 +196,32 @@ public:
   <!-- TODO: この推定ガイドの意義について説明する -->
 
 [sized_range に対応する](link?)まで、`enumerate_view` は触りません。
+
+[本節の差分](link?)
+
+## `input_iterator` に対応する
+
+[random_access_range に対応する](link?)まで、`enumerate_view<View>::iterator` のみに変更を加えます。
+`I` が `std::input_iterator` コンセプトを満たすには、以下の条件が成立する必要があります。
+
+- **`I` が `std::input_or_output_iterator` コンセプトを満たす**
+
+  上記で対応済みです。
+
+- **`I` に `typename I::value_type` が定義されており、その型がオブジェクト型である**
+  ```cpp
+  using value_type = std::pair<std::size_t, std::ranges::range_value_t<View>>;
+  ```
+- **`I` に `typename I::iterator_concept` が定義されており、その型が `std::input_iterator_tag` を継承している**
+  ```cpp
+  using iterator_concept = std::input_iterator_tag;
+  ```
+- **必要に応じて非メンバ関数 `iter_move(i)` が定義されている**
+
+  これについては少々難しいため [`iter_move` について](link?) で定義します。
+  `std::ranges::iter_move` にはデフォルトの定義が存在するため、定義は必須ではありません。
+  <!-- lvalue-referenceを保持する型(std::pair<std::size_t, T&>など)を返すイテレータは、iter_moveを定義した方がよい -->
+  <!-- lvalue-referenceを保持する型 のことを proxy reference と呼ぶらしい -->
+  <!-- TODO: iter_move はここで定義するか? 後ろで定義するか? -->
 
 [本節の差分](link?)
