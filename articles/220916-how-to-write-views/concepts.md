@@ -183,6 +183,8 @@ _simple-view_ とは、ある種の range を表す説明専用(標準ライブ�
   各種イテレータの最小実装例 (`sample_input_or_output_iterator` など) が掲載されています
 - [［C++］ C++17 イテレータ <=> C++20 イテレータ != 0 — 地面を見下ろす少年の足蹴にされる私](https://onihusube.hatenablog.com/entry/2020/12/27/150400)
   C++20 以降のイテレータコンセプトについて、C++17 以前と比較して説明されています。
+- [イテレータの解説をするなんて今更佳代 — qiita.com/yumetodo](https://qiita.com/yumetodo/items/245e94a0e85db9bf5cbb)
+  C++17 イテレータの書き方について説明されています
 
 #### `iterator_category`
 
