@@ -15,7 +15,7 @@ published: false
 
 <!-- TODO: range adaptor の導入 -->
 
-range adaptor を実装するは、その range adaptor で実現したい操作の他にも、元となる view の性質を受け継ぐ動作を記述する必要があります。この性質を受け継ぐための記述は range adaptor の実装の多くを占める一方、そのほとんどは使い回しのできるコードとなっています。
+range adaptor を実装するには、その range adaptor で実現したい操作の他にも、元となる view の性質を受け継ぐ動作を記述する必要があります。この性質を受け継ぐための記述は range adaptor の実装の多くを占める一方、そのほとんどは使い回しのできるコードとなっています。
 
 そこで本記事では例として `enumerate_view` の実装を追うことで、その他の range adaptor の実装にも役立てることを試みます。
 
@@ -395,6 +395,7 @@ input_iterator < forward_iterator
     return x;
   }
   ```
+  <!-- TODO: RVOについて書く? -->
 - **イテレータと数値の減算 `i -= n`** (戻り値の型が `I&`), **`i - n`** (戻り値の型が `I`) **が定義されている**
   ```cpp
   constexpr iterator& operator-=(difference_type n) //
@@ -441,7 +442,11 @@ input_iterator < forward_iterator
 
 ## `sized_sentinel_for`・`sized_range` に対応する
 
-<!-- TODO: `sized_sentinel_for`・`sized_range`の説明を書く -->
+`sized_range` とは償却定数時間でサイズを取得できる range のことです。また `sized_sentinel_for<I, S>` は番兵イテレータに対するコンセプトであり、`S` がイテレータ `I` との間の距離が計算できる番兵イテレータであることを表します。
+
+償却定数時間でサイズを取得できる range の例として `std::ranges::random_access_range` コンセプトを満たす range が直ちに挙げられます。しかし、償却定数時間でサイズを取得できるには必ずしも `std::ranges::random_access_range` コンセプトを満たす必要はありません。そのような例として、 サイズをキャッシュしているコンテナ (`std::unordered_map` など) が挙げられます。そのため `V` が `std::ranges::sized_range` コンセプトを満たすか否か、および `S` が `std::sized_sentinel_for<I>` コンセプトを満たすか否かは、そのイテレータ型 `I` のイテレータコンセプトとは独立に規定されています。
+
+本節では元の view が `sized_range` (または `sized_sentinel_for`) を満たす場合に、 `enumerate_view` が `sized_range` (または `sized_sentinel_for`) を満たすよう変更を加えます。
 
 `S` が `std::sized_sentinel_for<I>` コンセプトを満たすには、以下の条件が成立する必要があります。
 
@@ -469,8 +474,6 @@ input_iterator < forward_iterator
     return std::ranges::size(base_);
   }
   ```
-
-補足ですが、`S` が `std::sized_sentinel_for<I>` コンセプトを満たすか否か、`V` が `std::ranges::sized_range` コンセプトを満たすか否かは、`I` の イテレータコンセプトとは独立に規定されています。そのため、`I` が `std::input_iterator` コンセプトから `std::random_access_iterator` コンセプトまでのどのコンセプトを満たすかに依らず、上記のメソッドは定義できます。
 
 [本節の差分](link?)
 
