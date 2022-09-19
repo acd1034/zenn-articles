@@ -544,3 +544,63 @@ iter_move(const iterator& x) noexcept(
 ```
 
 [本節の差分](link?)
+
+## _const-iterable_ に対応する
+
+_const-iterable_ とは、const 修飾後も range コンセプトを満たす range のことです。STL のコンテナなど、一般的な range は _const-iterable_ ですが、現在の `enumerate_view` はその要件を満たしません。本節では元の view が _const-iterable_ である場合に、 `enumerate_view` が _const-iterable_ となるよう変更を加えます。
+
+ここでの変更は多岐に渡るため、差分の多くは[リンク先](link?)に譲り、変更の概略を紹介しています。
+
+#### `enumerate_view<View>::iterator` および `enumerate_view<View>::sentinel` に対する変更
+
+1. 非型テンプレートパラメータ `bool Const` を追加する
+   ```diff cpp
+   + template <bool Const>
+     struct iterator;
+   + template <bool Const>
+     struct sentinel;
+   ```
+2. 型エイリアス `Base` を、`Const` が真のとき `const View`、偽のとき `View` として定義する
+   ```diff cpp
+   + using Base = std::conditional_t<Const, const View, View>;
+   ```
+3. すべての `View` を `Base` で置き換える
+
+#### `enumerate_view` に対する変更
+
+1. メンバ関数 `begin()` を `iterator<false>` を返すよう変更する
+   ```diff cpp
+   - constexpr iterator begin() { return {std::ranges::begin(base_), 0}; }
+   + constexpr iterator<false> begin() { return {std::ranges::begin(base_), 0}; }
+   ```
+2. メンバ関数 `end()` を `sentinel<false>` (`common_range` の場合は `iterator<false>`) を返すよう変更する
+   ```diff cpp
+    constexpr auto end() {
+      if constexpr (std::ranges::common_range<View> and //
+                    std::ranges::sized_range<View>)
+   -    return iterator(std::ranges::end(base_), std::ranges::size(base_));
+   +    return iterator<false>(std::ranges::end(base_), std::ranges::size(base_));
+      else
+   -    return sentinel(std::ranges::end(base_));
+   +    return sentinel<false>(std::ranges::end(base_));
+    }
+   ```
+3. メンバ関数 `begin() const` を定義し、 `iterator<true>` を返すようにする
+   ```diff cpp
+   + constexpr iterator<true>
+   + begin() const requires std::ranges::input_range<const View> {
+   +   return {std::ranges::begin(base_), 0};
+   + }
+   ```
+4. メンバ関数 `end() const` を定義し、 `sentinel<true>` (`common_range` の場合は `iterator<true>`) を返すようにする
+   ```diff cpp
+   + constexpr auto end() const requires std::ranges::input_range<const View> {
+   +   if constexpr (std::ranges::common_range<const View> and //
+   +                 std::ranges::sized_range<const View>)
+   +     return iterator<true>(std::ranges::end(base_), std::ranges::size(base_));
+   +   else
+   +     return sentinel<true>(std::ranges::end(base_));
+   + }
+   ```
+
+[本節の差分](link?)
