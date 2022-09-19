@@ -68,7 +68,7 @@ public:
 ```
 
 :::message
-節の最後にその節の変更点の差分をリンクで示しています。コミットにはその節の変更点に対する単体テストも含まれます。
+節の最後にその節の変更点の差分をリンクで示しています。コミットには簡単な単体テストも含まれます。
 :::
 
 :::message
@@ -89,9 +89,9 @@ public:
 
 ## `view` コンセプトに対応する
 
-実装する view の型を`V`、`V`のイテレータの型を`I`、`V`の番兵イテレータの型を`S`とします。この時`V`が`view` コンセプトを満たすには、以下の条件が成立する必要があります。
+実装する view の型を `V`、`V` のイテレータの型を `I`、`V` の番兵イテレータの型を `S` とします。この時 `V` が`view` コンセプトを満たすには、以下の条件が成立する必要があります。
 
-- `V` が[後述の条件](link?)を満たす
+- `V` が [後述の条件](link?) を満たす
 - `I` が `std::input_or_output_iterator` コンセプトを満たす
 - `S` が `std::sentinel_for<I>` コンセプトを満たす
 
@@ -172,7 +172,7 @@ public:
 
   <!-- TODO: operator== の自動定義について説明する -->
 
-[`sized_sentinel_for`・`sized_range` に対応する](link?)まで、`enumerate_view<View>::sentinel` は触りません。
+以後 [`sized_sentinel_for`・`sized_range` に対応する](link?) まで、`enumerate_view<View>::sentinel` は触りません。
 
 [本節の差分](link?)
 
@@ -211,13 +211,13 @@ public:
   ```
   <!-- TODO: この推定ガイドの意義について説明する -->
 
-[`sized_sentinel_for`・`sized_range` に対応する](link?)まで、`enumerate_view` は触りません。
+以後 [`sized_sentinel_for`・`sized_range` に対応する](link?) まで、`enumerate_view` は触りません。
 
 [本節の差分](link?)
 
 ## `input_iterator` に対応する
 
-[random_access_range に対応する](link?)まで、`enumerate_view<View>::iterator` のみに変更を加えます。
+以後 [random_access_range に対応する](link?) まで、`enumerate_view<View>::iterator` のみに変更を加えます。
 `I` が `std::input_iterator` コンセプトを満たすには、以下の条件が成立する必要があります。
 
 - **`I` が `std::input_or_output_iterator` コンセプトを満たす**
@@ -282,7 +282,8 @@ public:
   }
   ```
 
-なお、後置インクリメントはほとんどの場合に上記のコードで定義できます(そのようなコードをボイラープレートと呼びます)。
+補足ですが、後置インクリメントはほとんどの場合に上記のコードで定義することができます。そのようなコードをボイラープレートと呼びます。
+
 [本節の差分](link?)
 
 ## `bidirectional_iterator` に対応する
@@ -320,7 +321,8 @@ public:
   }
   ```
 
-なお、後置デクリメントはボイラープレートです。
+補足ですが、後置デクリメントはボイラープレートです。
+
 [本節の差分](link?)
 
 ## `random_access_iterator` に対応する
@@ -407,7 +409,8 @@ public:
   }
   ```
 
-なお、`operator<`, `operator+=`, イテレータ間の減算 `-` **以外**はボイラープレートです。
+補足ですが、`operator<`、`operator+=`、イテレータ間の減算 `-` **以外**はボイラープレートです。
+
 また、`I` が `std::random_access_iterator` コンセプトを満たすためには不要ですが、慣例に倣い以下の変更を加えます。
 
 - **`I` に三方比較演算子 `<=>` を追加する**
@@ -422,6 +425,8 @@ public:
 [本節の差分](link?)
 
 ## `sized_sentinel_for`・`sized_range` に対応する
+
+<!-- TODO: `sized_sentinel_for`・`sized_range`の説明を書く -->
 
 `S` が `std::sized_sentinel_for<I>` コンセプトを満たすには、以下の条件が成立する必要があります。
 
@@ -450,15 +455,15 @@ public:
   }
   ```
 
-なお、`S` が `std::sized_sentinel_for<I>` コンセプトを満たすか否か、`V` が `std::ranges::sized_range` コンセプトを満たすか否かは、`I` の イテレータコンセプトとは独立に規定されています。そのため、`I` が `std::input_iterator` コンセプトから `std::random_access_iterator` コンセプトまでのどのコンセプトを満たすかに依らず、上記のメソッドは定義できます。
+補足ですが、`S` が `std::sized_sentinel_for<I>` コンセプトを満たすか否か、`V` が `std::ranges::sized_range` コンセプトを満たすか否かは、`I` の イテレータコンセプトとは独立に規定されています。そのため、`I` が `std::input_iterator` コンセプトから `std::random_access_iterator` コンセプトまでのどのコンセプトを満たすかに依らず、上記のメソッドは定義できます。
 
 [本節の差分](link?)
 
 <!-- TODO: ここからはオプショナルです、と書く? -->
 
-## iterator_category を定義する
+## `iterator_category` を定義する
 
-[`random_access_iterator` に対応する](link?)までで、元の view がイテレータコンセプトを満たす場合に `enumerate_view` が同じイテレータコンセプトを満たす方法を紹介しました。しかし、現在の `enumerate_view` は C++17 以前のイテレータ要件(規格では _Cpp17InputIterator_ などと呼ばれています)を満たしません。本節では `iterator_category` を定義することで C++17 以前のイテレータ要件を満足させます。
+[`random_access_iterator` に対応する](link?) までで、元の view がイテレータコンセプトを満たす場合に `enumerate_view` が同じイテレータコンセプトを満たす方法を紹介しました。しかし、現在の `enumerate_view` は C++17 以前のイテレータ要件 (規格では _Cpp17InputIterator_ などと呼ばれています) を満たしません。本節では `iterator_category` を定義することで C++17 以前のイテレータ要件を満足させます。
 
 元の view が C++17 以前のイテレータ要件を満たす場合に `V` が同じイテレータ要件を満たすには、`I` が下記の構造体 `deduce_iterator_category` を継承している必要があります。
 
@@ -500,7 +505,7 @@ struct deduce_iterator_category<View> {
 
 [本節の差分](link?)
 
-## 必要に応じて iter_move を定義する
+## 必要に応じて `iter_move` を定義する
 
 ここでは非メンバ関数 `iter_move(i)` を手動で定義するが必要があるときについて説明します。
 
@@ -509,7 +514,7 @@ struct deduce_iterator_category<View> {
 - 実引数依存の名前探索によって `iter_move(std::forward<I>(i))` が見つかる場合、それを呼び出します
 - そうでなくて `*std::forward<I>(i)` が well-formed な左辺値の場合、`std::move(*std::forward<I>(i))` を呼び出します
 - そうでなくて `*std::forward<I>(i)` が well-formed な右辺値の場合、それを呼び出します
-- そうで無い場合、`std::ranges::iter_move(i)` は ill-formed です
+- そうでない場合、`std::ranges::iter_move(i)` は ill-formed です
 
 すなわち `iter_move(i)` を手動で定義しなくても、`std::ranges::iter_move` は `std::move(*std::forward<I>(i))` か `*std::forward<I>(i)` を選択して適切に右辺値を返します。
 
@@ -549,7 +554,7 @@ iter_move(const iterator& x) noexcept(
 
 _const-iterable_ とは、const 修飾後も range コンセプトを満たす range のことです。STL のコンテナなど、一般的な range は _const-iterable_ ですが、現在の `enumerate_view` はその要件を満たしません。本節では元の view が _const-iterable_ である場合に、 `enumerate_view` が _const-iterable_ となるよう変更を加えます。
 
-ここでの変更は多岐に渡るため、差分の多くは[リンク先](link?)に譲り、変更の概略を紹介しています。
+ここでの変更は多岐に渡るため、差分の多くは [リンク先](link?) に譲り、変更の概略を紹介します。
 
 #### `enumerate_view<View>::iterator` および `enumerate_view<View>::sentinel` に対する変更
 
