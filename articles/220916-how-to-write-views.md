@@ -13,8 +13,13 @@ published: false
 - view の書き方を step by step で説明する
   <!-- TODO: view→range adaptorに変更 -->
 
-ここでは例として`enumerate_view`を実装します。
-使用例:
+<!-- TODO: range adaptor の導入 -->
+
+range adaptor を実装するは、その range adaptor で実現したい操作の他にも、元となる view の性質を受け継ぐ動作を記述する必要があります。この性質を受け継ぐための記述は range adaptor の実装の多くを占める一方、そのほとんどは使い回しのできるコードとなっています。
+
+そこで本記事では例として `enumerate_view` の実装を追うことで、その他の range adaptor の実装にも役立てることを試みます。
+
+`enumerate_view` の使用例:
 
 ```cpp
 std::vector<char> v{'a', 'b', 'c'};
