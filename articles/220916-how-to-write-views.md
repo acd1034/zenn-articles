@@ -497,7 +497,7 @@ struct deduce_iterator_category<View> {
 };
 ```
 
-ところが、`enumerate_view` は間接参照演算子 `*i` が左辺値参照を返さないため、_Cpp17InputIterator_ よりも強いイテレータ要件を満たしません。そのため `enumerate_view` の `deduce_iterator_category` は以下のように修正する必要があります。
+通常はこれでよいのですが、`enumerate_view` は間接参照演算子 `*i` が左辺値参照を返さないため、_Cpp17InputIterator_ よりも強いイテレータ要件を満たしません。そのため `enumerate_view` の `deduce_iterator_category` は以下のように修正する必要があります。
 
 ```diff cpp
   template <class View>
@@ -562,7 +562,7 @@ iter_move(const iterator& x) noexcept(
 + }
 ```
 
-通常はこれで良いのですが、`enumerate_view` の `common_range` 用のイテレータの構築には、元となる view のサイズを必要とします。そのため `enumerate_view` の場合は `std::ranges::common_range` に加えて `std::ranges::sized_range` で制約します。
+通常はこれでよいのですが、`enumerate_view` の `common_range` 用のイテレータの構築には、元となる view のサイズを必要とします。そのため `enumerate_view` の場合は `std::ranges::common_range` に加えて `std::ranges::sized_range` で制約します。
 
 ```diff cpp
   constexpr auto end() {
