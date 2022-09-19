@@ -555,12 +555,23 @@ iter_move(const iterator& x) noexcept(
 ```diff cpp
 - constexpr auto end() { return sentinel(std::ranges::end(base_)); }
 + constexpr auto end() {
-+   if constexpr (std::ranges::common_range<View> and //
-+                 std::ranges::sized_range<View>)
++   if constexpr (std::ranges::common_range<View>)
 +     return iterator(std::ranges::end(base_), std::ranges::size(base_));
 +   else
 +     return sentinel(std::ranges::end(base_));
 + }
+```
+
+通常はこれで良いのですが、`enumerate_view` の `common_range` 用のイテレータの構築には、元となる view のサイズを必要とします。そのため `enumerate_view` の場合は `std::ranges::common_range` に加えて `std::ranges::sized_range` で制約します。
+
+```diff cpp
+  constexpr auto end() {
+-   if constexpr (std::ranges::common_range<View>)
++   if constexpr (std::ranges::common_range<View> and std::ranges::sized_range<View>)
+      return iterator(std::ranges::end(base_), std::ranges::size(base_));
+    else
+      return sentinel(std::ranges::end(base_));
+  }
 ```
 
 [本節の差分](link?)
