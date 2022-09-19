@@ -518,9 +518,6 @@ struct deduce_iterator_category<View> {
   };
 ```
 
-<!-- NOTE: http://eel.is/c++draft/iterator.cpp17 -->
-<!-- NOTE: https://cpprefjp.github.io/reference/iterator/iterator_traits.html -->
-
 [本節の差分](link?)
 
 ## 必要に応じて `iter_move` を定義する
@@ -553,7 +550,18 @@ iter_move(const iterator& x) noexcept(
 
 ## `common_range` に対応する
 
-`common_range` とは、イテレータと番兵イテレータの型が一致する range のことです。C++17 以前のイテレータではイテレータと番兵イテレータの型が一致することは前提とされていましたが、C++20 以降ではこの 2 者は必ずしも一致しないものとして扱われています。本節では元の view が `common_range` である場合に `enumerate_view` が `common_range` となるよう、以下の変更を加えます。
+`common_range` とは、イテレータと番兵イテレータの型が一致する range のことです。
+
+```cpp
+std::forward_list<int> fl{};
+// fl は common_range
+static_assert(std::ranges::common_range<decltype(fl)>);
+std::ranges::take_view taken(fl, 0);
+// taken は common_range ではない
+static_assert(not std::ranges::common_range<decltype(taken)>);
+```
+
+C++17 以前のイテレータではイテレータと番兵イテレータの型が一致することは前提とされていました。しかし C++20 以降ではこの 2 者は必ずしも一致しないものとして扱われています。本節では元の view が `common_range` である場合に `enumerate_view` が `common_range` となるよう、以下の変更を加えます。
 
 ```diff cpp
 - constexpr auto end() { return sentinel(std::ranges::end(base_)); }
@@ -581,7 +589,18 @@ iter_move(const iterator& x) noexcept(
 
 ## _const-iterable_ に対応する
 
-_const-iterable_ とは、const 修飾後も range コンセプトを満たす range のことです。STL のコンテナなど、一般的な range は _const-iterable_ ですが、現在の `enumerate_view` はその要件を満たしません。本節では元の view が _const-iterable_ である場合に、 `enumerate_view` が _const-iterable_ となるよう変更を加えます。
+_const-iterable_ とは、const 修飾後も range コンセプトを満たす range のことです。
+
+```cpp
+const std::vector<int> v{};
+// v は const-iterable
+static_assert(std::ranges::range<decltype(v)>);
+const std::ranges::filter_view filtered(v, std::identity{});
+// filtered は const-iterable ではない
+static_assert(not std::ranges::range<decltype(filtered)>);
+```
+
+STL のコンテナなど、一般的な range は _const-iterable_ ですが、現在の `enumerate_view` はその要件を満たしません。本節では元の view が _const-iterable_ である場合に、 `enumerate_view` が _const-iterable_ となるよう変更を加えます。
 
 ここでの変更は多岐に渡るため、差分の多くは [リンク先](link?) に譲り、変更の概略を紹介します。
 
