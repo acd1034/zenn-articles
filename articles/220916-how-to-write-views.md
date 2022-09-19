@@ -217,7 +217,17 @@ public:
 
 ## `input_iterator` に対応する
 
-以後 [random_access_range に対応する](link?) まで、`enumerate_view<View>::iterator` のみに変更を加えます。
+イテレータは、そのイテレータが提供する操作によって分類することができます。この分類はイテレータカテゴリと呼ばれ、イテレータカテゴリには提供する操作に基づき順序構造が定められています。C++20 時点で提供されているイテレータカテゴリとその順序は以下のようになります (`output_iterator` は省略)。
+
+```
+input_iterator < forward_iterator
+               < bidirectional_iterator
+               < random_access_iterator
+               < contiguous_iterator
+```
+
+`enumerate_view` などの range adaptor は元となる view から新たな view を生み出す操作であり、その多くは元となる view のイテレータカテゴリを受け継ぐことができます。そこで、本節から [random_access_range に対応する](link?) までに渡り、元となる view があるイテレータカテゴリを満たす場合に `enumerate_view` が同じイテレータカテゴリを満たすよう、変更を加えます。なお、イテレータカテゴリは view や番兵イテレータに依らず、イテレータの操作のみによって定まります。そのため、以後 [random_access_range に対応する](link?) までは `enumerate_view<View>::iterator` のみに変更を加えます。
+
 `I` が `std::input_iterator` コンセプトを満たすには、以下の条件が成立する必要があります。
 
 - **`I` が `std::input_or_output_iterator` コンセプトを満たす**
