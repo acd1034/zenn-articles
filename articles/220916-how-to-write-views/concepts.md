@@ -161,6 +161,11 @@ _simple-view_ とは、ある種の range を表す説明専用(標準ライブ�
 - [P2415R2 What is a `view`?](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p2415r2.html)
   `view` コンセプト に $O(1)$ コピー可能であることが要求されなくなりました。
 
+#### C++23 に向けて採択された関連論文
+
+- [P2494R2 Relaxing range adaptors to allow for move only types](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2022/p2494r2.html)
+  view 内部で保持する型としてコピー構築不能だがムーブ構築可能な型が許可されるようになりました。
+
 #### 処理系の対応状況
 
 - [Implementation Status C++ 2023 — The GNU C++ Library Manual](https://gcc.gnu.org/onlinedocs/libstdc++/manual/status.html#status.iso.2023)
@@ -202,3 +207,8 @@ _simple-view_ とは、ある種の range を表す説明専用(標準ライブ�
 - [filter_view が const-iterable ではない理由 — zenn.dev/onihusube/scraps](https://zenn.dev/onihusube/scraps/40a95c8f769414)
 
 <!-- emdash: `—` -->
+
+#### range adaptor object/range adaptor closure object
+
+- [P2387R3 Pipe support for user-defined range adaptors](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p2387r3.html)
+- [［C++］ ranges のパイプにアダプトするには — 地面を見下ろす少年の足蹴にされる私](https://onihusube.hatenablog.com/entry/2022/04/24/010041)
