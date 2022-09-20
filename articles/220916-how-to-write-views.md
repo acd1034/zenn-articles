@@ -224,7 +224,7 @@ public:
 
 イテレータは、そのイテレータが提供する操作によって分類することができます。この分類はイテレータカテゴリと呼ばれ、イテレータカテゴリには提供する操作に基づき順序構造が定められています。C++20 時点で提供されているイテレータカテゴリとその順序は以下のようになります (`output_iterator` は省略)。
 
-```
+```cpp
 input_iterator < forward_iterator
                < bidirectional_iterator
                < random_access_iterator
@@ -655,5 +655,75 @@ STL のコンテナなど、一般的な range は _const-iterable_ ですが、
    +     return sentinel<true>(std::ranges::end(base_));
    + }
    ```
+
+[本節の差分](link?)
+
+## range adaptor object/range adaptor closure object を定義する (C++23 以降)
+
+range adaptor は直接コンストラクタを呼び出すことで構築する他にも、関数呼び出しによって構築することができます。
+
+```cpp
+std::vector<int> v{0, 1, 2};
+auto pred = [](auto x) { return x % 2 == 0; };
+// 直接コンストラクタを呼び出すことで構築する
+std::ranges::filter_view filtered(v, pred);
+// 関数呼び出しによって構築する
+auto filtered2 = std::views::filter(v, pred);
+```
+
+また、下記のようにパイプライン記法によって構築することもできます。
+
+```cpp
+// パイプライン記法によって構築する
+auto filtered3 = v | std::views::filter(pred);
+```
+
+このような記法が許されるのは関数オブジェクト `std::views::filter` が適切にパイプライン演算子 (`operator|`) を定義しているためです。このとき `std::views::filter` のような関数オブジェクトのことを range adaptor object といいます。また、`std::views::filter(pred)` のような range adaptor object に引数を部分適用することで得られる関数オブジェクトのことを range adaptor closure object と呼びます。本節では range adaptor closure object として `enumerate_view` の関数オブジェクトを、range adaptor object として `filter_view` の関数オブジェクトを実装します。
+
+`enumerate_view` のコンストラクタは `view` のみを引数とし、その他の引数をもちません。そのため `enumerate_view` に対応する関数オブジェクトは、元となる `view` を受け取り `enumerate_view` を返す range adaptor closure object となります。`enumerate_view` の range adaptor closure object は以下のように実装できます。
+
+```cpp
+struct enumerate_fn : std::ranges::range_adaptor_closure<enumerate_fn> {
+  template <std::ranges::viewable_range Range>
+  constexpr auto operator()(Range&& range) const
+    noexcept(noexcept(enumerate_view(std::forward<Range>(range))))
+      -> decltype(enumerate_view(std::forward<Range>(range))) {
+    return enumerate_view(std::forward<Range>(range));
+  }
+};
+
+inline namespace cpo {
+  inline constexpr auto enumerate = enumerate_fn();
+} // namespace cpo
+```
+
+一方 `filter_view` のコンストラクタは `view` の他に述語となるような関数オブジェクトを受け取ります。`filter_view` の range adaptor object は以下のように実装できます。
+
+```cpp
+struct filter_fn {
+  template <std::ranges::viewable_range Range, class Pred>
+  constexpr auto operator()(Range&& range, Pred&& pred) const
+    noexcept(noexcept(std::ranges::filter_view(std::forward<Range>(range),
+                                               std::forward<Pred>(pred))))
+      -> decltype(std::ranges::filter_view(std::forward<Range>(range),
+                                           std::forward<Pred>(pred))) {
+    return std::ranges::filter_view(std::forward<Range>(range),
+                                    std::forward<Pred>(pred));
+  }
+  template <class Pred>
+  requires std::constructible_from<std::decay_t<Pred>, Pred>
+  constexpr auto operator()(Pred&& pred) const noexcept(
+    noexcept(std::is_nothrow_constructible_v<std::decay_t<Pred>, Pred>)) {
+    return std::ranges::range_adaptor_closure(
+      std::bind_back(*this, std::forward<Pred>(pred)));
+  }
+};
+
+inline namespace cpo {
+  inline constexpr auto filter = filter_fn();
+} // namespace cpo
+```
+
+<!-- TODO: inline namespace について書く -->
 
 [本節の差分](link?)
