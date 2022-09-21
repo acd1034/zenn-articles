@@ -573,7 +573,7 @@ C++17 以前のイテレータではイテレータと番兵イテレータの�
 + }
 ```
 
-通常はこれでよいのですが、`enumerate_view` の `common_range` 用のイテレータの構築には、元となる view のサイズを必要とします。そのため `enumerate_view` の場合は `std::ranges::common_range` に加えて `std::ranges::sized_range` で制約します。
+通常はこれでよいのですが、`enumerate_view` の イテレータの構築には、元となる view のサイズを必要とします。そのため `enumerate_view` の場合は `std::ranges::common_range` に加えて `std::ranges::sized_range` で制約する必要があります。
 
 ```diff cpp
   constexpr auto end() {
@@ -660,34 +660,33 @@ STL のコンテナなど、一般的な range は _const-iterable_ ですが、
 
 ## range adaptor object/range adaptor closure object を定義する (C++23 以降)
 
-range adaptor は直接コンストラクタを呼び出すことで構築する他にも、関数呼び出しによって構築することができます。
+range adaptor の構築方法には、直接コンストラクタを呼び出す方法の他にも、専用のヘルパー関数オブジェクトを呼び出す方法があります。
 
 ```cpp
 std::vector<int> v{0, 1, 2};
 auto pred = [](auto x) { return x % 2 == 0; };
 // 直接コンストラクタを呼び出すことで構築する
 std::ranges::filter_view filtered(v, pred);
-// 関数呼び出しによって構築する
+// 専用のヘルパー関数オブジェクトを用いて構築する
 auto filtered2 = std::views::filter(v, pred);
 ```
 
-また、下記のようにパイプライン記法によって構築することもできます。
+また、下記のようにパイプライン記法を用いて構築することもできます。
 
 ```cpp
-// パイプライン記法によって構築する
+// パイプライン記法を用いて構築する
 auto filtered3 = v | std::views::filter(pred);
 ```
 
-このような記法が許されるのは関数オブジェクト `std::views::filter` が適切にパイプライン演算子 (`operator|`) を定義しているためです。このとき `std::views::filter` のような関数オブジェクトのことを range adaptor object といいます。また、`std::views::filter(pred)` のような range adaptor object に引数を部分適用することで得られる関数オブジェクトのことを range adaptor closure object と呼びます。本節では range adaptor closure object として `enumerate_view` の関数オブジェクトを、range adaptor object として `filter_view` の関数オブジェクトを実装します。
+本節では `enumerate_view` においてこのような記法ができるよう、ヘルパー関数オブジェクトを実装します。なお、本節のコードは C++23 に向けて採択されたライブラリ機能 ([P2387R3 Pipe support for user-defined range adaptors](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p2387r3.html)) を用いているため、コンパイルできるのは C++23 に対応したコンパイラのみとなります。
 
-`enumerate_view` のコンストラクタは `view` のみを引数とし、その他の引数をもちません。そのため `enumerate_view` に対応する関数オブジェクトは、元となる `view` を受け取り `enumerate_view` を返す range adaptor closure object となります。`enumerate_view` の range adaptor closure object は以下のように実装できます。
+`enumerate_view` のヘルパー関数オブジェクトは以下のように実装することができます。
 
 ```cpp
 struct enumerate_fn : std::ranges::range_adaptor_closure<enumerate_fn> {
   template <std::ranges::viewable_range Range>
   constexpr auto operator()(Range&& range) const
-    noexcept(noexcept(enumerate_view(std::forward<Range>(range))))
-      -> decltype(enumerate_view(std::forward<Range>(range))) {
+    noexcept(noexcept(enumerate_view(std::forward<Range>(range)))) {
     return enumerate_view(std::forward<Range>(range));
   }
 };
@@ -697,25 +696,23 @@ inline namespace cpo {
 } // namespace cpo
 ```
 
-一方 `filter_view` のコンストラクタは `view` の他に述語となるような関数オブジェクトを受け取ります。`filter_view` の range adaptor object は以下のように実装できます。
+補足ですが、このようなヘルパー関数オブジェクトの実装方法は、対応する view のコンストラクタの引数によって異なります。`enumerate_view` のように元となる view のみを受け取る view のヘルパー関数オブジェクトは `enumerate_view` と同様に実装することができます。一方、`filter_view` のように元となる view の他にも引数を受け取る場合は、ヘルパー関数オブジェクトの実装方法は少し異なります。参考のため、`filter_view` のヘルパー関数オブジェクトの実装例を以下に示します。
 
 ```cpp
 struct filter_fn {
   template <std::ranges::viewable_range Range, class Pred>
   constexpr auto operator()(Range&& range, Pred&& pred) const
-    noexcept(noexcept(std::ranges::filter_view(std::forward<Range>(range),
-                                               std::forward<Pred>(pred))))
-      -> decltype(std::ranges::filter_view(std::forward<Range>(range),
-                                           std::forward<Pred>(pred))) {
-    return std::ranges::filter_view(std::forward<Range>(range),
-                                    std::forward<Pred>(pred));
+    noexcept(noexcept(
+      std::ranges::filter_view(std::forward<Range>(range), std::forward<Pred>(pred)))) {
+    return
+      std::ranges::filter_view(std::forward<Range>(range), std::forward<Pred>(pred));
   }
   template <class Pred>
   requires std::constructible_from<std::decay_t<Pred>, Pred>
-  constexpr auto operator()(Pred&& pred) const noexcept(
-    noexcept(std::is_nothrow_constructible_v<std::decay_t<Pred>, Pred>)) {
-    return std::ranges::range_adaptor_closure(
-      std::bind_back(*this, std::forward<Pred>(pred)));
+  constexpr auto operator()(Pred&& pred) const
+    noexcept(noexcept(std::is_nothrow_constructible_v<std::decay_t<Pred>, Pred>)) {
+    return
+      std::ranges::range_adaptor_closure(std::bind_back(*this, std::forward<Pred>(pred)));
   }
 };
 
@@ -725,6 +722,8 @@ inline namespace cpo {
 ```
 
 <!-- TODO: inline namespace について書く -->
+
+本節ではヘルパー関数オブジェクトの詳細まで立ち入ることはできませんでした。その詳細については [［C++］ ranges のパイプにアダプトするには — 地面を見下ろす少年の足蹴にされる私](https://onihusube.hatenablog.com/entry/2022/04/24/010041) において詳しく説明されています。
 
 [本節の差分](link?)
 
