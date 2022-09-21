@@ -727,3 +727,5 @@ inline namespace cpo {
 <!-- TODO: inline namespace について書く -->
 
 [本節の差分](link?)
+
+## 補遺: P2164 `views::enumerate` について

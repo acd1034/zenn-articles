@@ -173,6 +173,7 @@ _simple-view_ とは、ある種の range を表す説明専用(標準ライブ�
 - [VS 2019 16.11.14 — VS 2019 Changelog](https://github.com/microsoft/STL/wiki/VS-2019-Changelog#vs-2019-161114)
 - [VS 2022 17.1 — VS 2022 Changelog](https://github.com/microsoft/STL/wiki/Changelog#vs-2022-171)
 - [VS 2022 17.0 — VS 2022 Changelog](https://github.com/microsoft/STL/wiki/Changelog#vs-2022-170)
+- [MSVC’s STL Completes /std:c++20 — Microsoft C++ Team Blog](https://devblogs.microsoft.com/cppblog/msvcs-stl-completes-stdc20/)
 
 #### `view` の書き方
 
@@ -205,6 +206,7 @@ _simple-view_ とは、ある種の range を表す説明専用(標準ライブ�
 - [Range と View と const 修飾 — yohhoy の日記](https://yohhoy.hatenadiary.jp/entry/20210701/p1)
   range の const 修飾と view の const 修飾は異なることについて説明されています
 - [filter_view が const-iterable ではない理由 — zenn.dev/onihusube/scraps](https://zenn.dev/onihusube/scraps/40a95c8f769414)
+- [C++20 Range Adaptors and Range Factories — Barry's C++ Blog](https://brevzin.github.io/c++/2021/02/28/ranges-reference/)
 
 <!-- emdash: `—` -->
 
@@ -212,3 +214,7 @@ _simple-view_ とは、ある種の range を表す説明専用(標準ライブ�
 
 - [P2387R3 Pipe support for user-defined range adaptors](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p2387r3.html)
 - [［C++］ ranges のパイプにアダプトするには — 地面を見下ろす少年の足蹴にされる私](https://onihusube.hatenablog.com/entry/2022/04/24/010041)
+
+#### `enumerate_view`
+
+- [P2164R6 `views::enumerate`](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2022/p2164r6.pdf)
