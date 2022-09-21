@@ -218,3 +218,4 @@ _simple-view_ とは、ある種の range を表す説明専用(標準ライブ�
 #### `enumerate_view`
 
 - [P2164R6 `views::enumerate`](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2022/p2164r6.pdf)
+- [rangesnext — github.com/cor3ntin](https://github.com/cor3ntin/rangesnext)
