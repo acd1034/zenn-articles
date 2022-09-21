@@ -149,7 +149,7 @@ public:
   }
   ```
 
-[本節の差分](link?)
+[本節の差分](https://github.com/acd1034/cpp-example/commit/0205c08f5df5318c54e876839cfc8645d6d87d40)
 
 ### `S` を `sentinel_for` に対応させる
 
@@ -193,7 +193,7 @@ public:
 
 以後 [`sized_sentinel_for`・`sized_range` に対応する](link?) まで、`enumerate_view<View>::sentinel` は触りません。
 
-[本節の差分](link?)
+[本節の差分](https://github.com/acd1034/cpp-example/commit/8a0627754c1fbffb5dfca936148e9745cc9ecb50)
 
 ### `V` を `view` コンセプトに対応させる
 
@@ -232,7 +232,7 @@ public:
 
 以後 [`sized_sentinel_for`・`sized_range` に対応する](link?) まで、`enumerate_view` は触りません。
 
-[本節の差分](link?)
+[本節の差分](https://github.com/acd1034/cpp-example/commit/38d8d7d8daa2cce3e594f13f68e26bde240aa743)
 
 ## `input_iterator` に対応する
 
@@ -268,7 +268,7 @@ input_iterator < forward_iterator
   <!-- lvalue-referenceを保持する型 のことを proxy reference と呼ぶらしい -->
   <!-- TODO: iter_move はここで定義するか? 後ろで定義するか? -->
 
-[本節の差分](link?)
+[本節の差分](https://github.com/acd1034/cpp-example/commit/69c53e58f19c4c42d8fcdbff17e9452ec1e1ba04)
 
 ## `forward_iterator` に対応する
 
@@ -313,7 +313,7 @@ input_iterator < forward_iterator
 
 補足ですが、後置インクリメントはほとんどの場合に上記のコードで定義することができます。そのようなコードをボイラープレートと呼びます。
 
-[本節の差分](link?)
+[本節の差分](https://github.com/acd1034/cpp-example/commit/302027f8a68426aa31eca062ce66396f534f4c21)
 
 ## `bidirectional_iterator` に対応する
 
@@ -352,7 +352,7 @@ input_iterator < forward_iterator
 
 補足ですが、後置デクリメントはボイラープレートです。
 
-[本節の差分](link?)
+[本節の差分](https://github.com/acd1034/cpp-example/commit/29e9e7546625a84e1b61381dc31e0837e90c353d)
 
 ## `random_access_iterator` に対応する
 
@@ -452,7 +452,7 @@ input_iterator < forward_iterator
   }
   ```
 
-[本節の差分](link?)
+[本節の差分](https://github.com/acd1034/cpp-example/commit/bbdac6478ff1bde8cde5ed4d5c6207c7172e135e)
 
 ## `sized_sentinel_for`・`sized_range` に対応する
 
@@ -489,7 +489,7 @@ input_iterator < forward_iterator
   }
   ```
 
-[本節の差分](link?)
+[本節の差分](https://github.com/acd1034/cpp-example/commit/12fc1316fc3a0c68a476799009751e5f6f8541d4)
 
 <!-- TODO: ここからはオプショナルです、と書く? -->
 
@@ -532,7 +532,7 @@ struct deduce_iterator_category<View> {
   };
 ```
 
-[本節の差分](link?)
+[本節の差分](https://github.com/acd1034/cpp-example/commit/d928721f03c0f06766370ff918f6b8a7e64ee91f)
 
 ## 必要に応じて `iter_move` を定義する
 
@@ -560,7 +560,7 @@ iter_move(const iterator& x) noexcept(
 }
 ```
 
-[本節の差分](link?)
+[本節の差分](https://github.com/acd1034/cpp-example/commit/0a83c3514a186f7190212d8d9bac5a9aa7fd8fcd)
 
 ## `common_range` に対応する
 
@@ -599,7 +599,7 @@ C++17 以前のイテレータではイテレータと番兵イテレータの�
   }
 ```
 
-[本節の差分](link?)
+[本節の差分](https://github.com/acd1034/cpp-example/commit/05d80e72fb0a02aff0b14f012e8824963c8c643c)
 
 ## _const-iterable_ に対応する
 
@@ -616,7 +616,7 @@ static_assert(not std::ranges::range<decltype(filtered)>);
 
 STL のコンテナなど、一般的な range は _const-iterable_ ですが、現在の `enumerate_view` はその要件を満たしません。本節では元の view が _const-iterable_ である場合に、 `enumerate_view` が _const-iterable_ となるよう変更を加えます。
 
-ここでの変更は多岐に渡るため、差分の多くは [リンク先](link?) に譲り、変更の概略を紹介します。
+ここでの変更は多岐に渡るため、差分の多くは [リンク先](https://github.com/acd1034/cpp-example/commit/00d240d31d535aa820fd7ee3e5490d95795346ac) に譲り、変更の概略を紹介します。
 
 #### `enumerate_view<View>::iterator` および `enumerate_view<View>::sentinel` に対する変更
 
@@ -670,7 +670,7 @@ STL のコンテナなど、一般的な range は _const-iterable_ ですが、
    + }
    ```
 
-[本節の差分](link?)
+[本節の差分](https://github.com/acd1034/cpp-example/commit/00d240d31d535aa820fd7ee3e5490d95795346ac)
 
 ## range adaptor object/range adaptor closure object を定義する (C++23 以降)
 
@@ -739,7 +739,7 @@ inline namespace cpo {
 
 本節ではヘルパー関数オブジェクトの詳細まで立ち入ることはできませんでした。その詳細については [［C++］ ranges のパイプにアダプトするには — 地面を見下ろす少年の足蹴にされる私](https://onihusube.hatenablog.com/entry/2022/04/24/010041) において詳しく説明されています。
 
-[本節の差分](link?)
+<!-- [本節の差分](link?) -->
 
 ## 補足: `enumerate_view` の提案について
 
