@@ -743,13 +743,26 @@ inline namespace cpo {
 
 ## 補足: `enumerate_view` の提案について
 
-本記事で紹介した `enumerate_view` は、ライブラリ機能として追加されることが提案されています。
+本記事で紹介した `enumerate_view` は、C++26 に向けてライブラリ機能として追加されることが提案されています。
 
 - [P2164R6 `views::enumerate`](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2022/p2164r6.pdf)
 
 本記事の `enumerate_view` は提案されているものとほとんど同じですが、簡単のため以下の点で差異があります。
 
 - 提案の `enumerate_view` は index の型が `std::size_t` ではなく、以下で定義される `index_type` です
-  <!-- TODO: index_type の定義 -->
-- 提案の `enumerate_view` は index の型が const 修飾されています
+  ```cpp
+  using index_type = std::conditional_t<
+    std::ranges::sized_range<Base>,
+    std::ranges::range_size_t<Base>,
+    std::make_unsigned_t<std::ranges::range_difference_t<Base>>>;
+  ```
+- 提案の `enumerate_view` の index は const 修飾されています
 - 提案の `enumerate_view` の値型は、`std::pair` ではなく専用の型 `std::enumerate_result` になります。この `std::enumerate_result` は構造化束縛に対応しています
+
+## おわりに
+
+本記事では range adaptor の実装を少しずつ見てきました。range adaptor の実装には使い回しできるコードが 2 種類あり、1 つ目はイテレータコンセプトを満たすために必要なボイラープレート、2 つ目は元となる view から性質を受け継ぐためのコードです。これらは range adaptor を自作したいときに役立てることができます。
+
+本記事で扱わなかったこととして、range factory の実装が挙げられます。range factory の view・イテレータ・番兵イテレータについても、実装しなければならないメソッドに変わりはありません。しかし、range factory の場合は求める機能に応じて変えなければならないコードが多く、多少煩雑になるのではないかと思います。
+
+誤り等ございましたらコメント頂けますと幸いです。
