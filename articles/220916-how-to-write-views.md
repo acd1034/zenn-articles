@@ -11,9 +11,15 @@ published: false
 目標:
 
 - view の書き方を step by step で説明する
-  <!-- TODO: view→range adaptorに変更 -->
 
 <!-- TODO: range adaptor の導入 -->
+
+view は大きく分けて 2 種類あります。
+
+- view を生み出すもの (range factory)
+- 元となる view から新たな view を生み出すもの (range adaptor)
+
+本記事では後者の書き方を紹介します。
 
 range adaptor を実装するには、その range adaptor で実現したい操作の他にも、元となる view の性質を受け継ぐ動作を記述する必要があります。この性質を受け継ぐための記述は range adaptor の実装の多くを占める一方、そのほとんどは使い回しのできるコードとなっています。
 
@@ -727,4 +733,15 @@ inline namespace cpo {
 
 [本節の差分](link?)
 
-## 補遺: P2164 `views::enumerate` について
+## 補足: `enumerate_view` の提案について
+
+本記事で紹介した `enumerate_view` は、ライブラリ機能として追加されることが提案されています。
+
+- [P2164R6 `views::enumerate`](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2022/p2164r6.pdf)
+
+本記事の `enumerate_view` は提案されているものとほとんど同じですが、簡単のため以下の点で差異があります。
+
+- 提案の `enumerate_view` は index の型が `std::size_t` ではなく、以下で定義される `index_type` です
+  <!-- TODO: index_type の定義 -->
+- 提案の `enumerate_view` は index の型が const 修飾されています
+- 提案の `enumerate_view` の値型は、`std::pair` ではなく専用の型 `std::enumerate_result` になります。この `std::enumerate_result` は構造化束縛に対応しています
