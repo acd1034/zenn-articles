@@ -2,8 +2,8 @@
 title: view の書き方を一歩ずつ
 emoji: 🪟
 type: tech
-topics: [cpp, cpp20, cpp23]
-published: false
+topics: [cpp, cpp20, ranges]
+published: true
 ---
 
 - 概要: 本記事ではインクリメンタルに view の書き方を説明しています。また具体例として `enumerate_view` の実装例を紹介しています。
@@ -485,8 +485,6 @@ input_iterator < forward_iterator
 
 [本節の差分](https://github.com/acd1034/cpp-example/commit/12fc1316fc3a0c68a476799009751e5f6f8541d4)
 
-<!-- TODO: ここからはオプショナルです、と書く? -->
-
 ## `iterator_category` を定義する
 
 [`random_access_iterator` に対応する](link?) までで、元の view がイテレータコンセプトを満たす場合に `enumerate_view` が同じイテレータコンセプトを満たす方法を紹介しました。しかし、現在の `enumerate_view` は C++17 以前のイテレータ要件 (規格では _Cpp17InputIterator_ などと呼ばれています) を満たしません。本節では `iterator_category` を定義することで C++17 以前のイテレータ要件を満足させます。
@@ -798,7 +796,7 @@ inline namespace cpo {
 - [std::input_or_output_iterator — cpprefjp](https://cpprefjp.github.io/reference/iterator/input_or_output_iterator.html) ~ [std::random_access_iterator — cpprefjp](https://cpprefjp.github.io/reference/iterator/random_access_iterator.html)
   各種イテレータの最小実装例 (`sample_input_or_output_iterator` など) が掲載されています
 - [［C++］ C++17 イテレータ <=> C++20 イテレータ != 0 — 地面を見下ろす少年の足蹴にされる私](https://onihusube.hatenablog.com/entry/2020/12/27/150400)
-  C++20 以降のイテレータコンセプトについて、C++17 以前と比較して説明されています。
+  C++20 以降のイテレータコンセプトについて、C++17 以前と比較して説明されています
 - [イテレータの解説をするなんて今更佳代 — qiita.com/yumetodo](https://qiita.com/yumetodo/items/245e94a0e85db9bf5cbb)
   C++17 イテレータの書き方について説明されています
 
