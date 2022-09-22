@@ -111,7 +111,7 @@ public:
 
 実装する view の型を `V`、`V` のイテレータの型を `I`、`V` の番兵イテレータの型を `S` とします。この時 `V` が`view` コンセプトを満たすには、以下の条件が成立する必要があります。
 
-- `V` が [後述の条件](link?) を満たす
+- `V` が [後述の条件](https://zenn.dev/acd1034/articles/220916-how-to-write-views#v-%E3%82%92-view-%E3%82%B3%E3%83%B3%E3%82%BB%E3%83%97%E3%83%88%E3%81%AB%E5%AF%BE%E5%BF%9C%E3%81%95%E3%81%9B%E3%82%8B) を満たす
 - `I` が `std::input_or_output_iterator` コンセプトを満たす
 - `S` が `std::sentinel_for<I>` コンセプトを満たす
 
@@ -242,7 +242,7 @@ input_iterator < forward_iterator
                < contiguous_iterator
 ```
 
-`enumerate_view` などの range adaptor は元となる view から新たな view を生み出す操作であり、その多くは元となる view のイテレータカテゴリを受け継ぐことができます。そこで、本節から [random_access_range に対応する](link?) までに渡り、元となる view があるイテレータカテゴリを満たす場合に `enumerate_view` が同じイテレータカテゴリを満たすよう、変更を加えます。なお、イテレータカテゴリは view や番兵イテレータに依らず、イテレータの操作のみによって定まります。そのため、以後 [random_access_range に対応する](link?) までは `enumerate_view<View>::iterator` のみに変更を加えます。
+`enumerate_view` などの range adaptor は元となる view から新たな view を生み出す操作であり、その多くは元となる view のイテレータカテゴリを受け継ぐことができます。そこで、本節から [random_access_range に対応する](https://zenn.dev/acd1034/articles/220916-how-to-write-views#random_access_iterator-%E3%81%AB%E5%AF%BE%E5%BF%9C%E3%81%99%E3%82%8B) までに渡り、元となる view があるイテレータカテゴリを満たす場合に `enumerate_view` が同じイテレータカテゴリを満たすよう、変更を加えます。なお、イテレータカテゴリは view や番兵イテレータに依らず、イテレータの操作のみによって定まります。そのため、以後 [random_access_range に対応する](https://zenn.dev/acd1034/articles/220916-how-to-write-views#random_access_iterator-%E3%81%AB%E5%AF%BE%E5%BF%9C%E3%81%99%E3%82%8B) までは `enumerate_view<View>::iterator` のみに変更を加えます。
 
 `I` が `std::input_iterator` コンセプトを満たすには、以下の条件が成立する必要があります。
 
@@ -260,7 +260,7 @@ input_iterator < forward_iterator
   ```
 - **必要に応じて非メンバ関数 `iter_move(i)` が定義されている**
 
-  `std::ranges::iter_move` にはデフォルトの定義が存在するため、定義は必須ではありません。しかし手動で定義した方がよい場合があります。これについては [`iter_move` について](link?) で説明します。
+  `std::ranges::iter_move` にはデフォルトの定義が存在するため、定義は必須ではありません。しかし手動で定義した方がよい場合があります。これについては [必要に応じて `iter_move` を定義する](https://zenn.dev/acd1034/articles/220916-how-to-write-views#%E5%BF%85%E8%A6%81%E3%81%AB%E5%BF%9C%E3%81%98%E3%81%A6-iter_move-%E3%82%92%E5%AE%9A%E7%BE%A9%E3%81%99%E3%82%8B) で説明します。
 
 [本節の差分](https://github.com/acd1034/cpp-example/commit/69c53e58f19c4c42d8fcdbff17e9452ec1e1ba04)
 
@@ -487,7 +487,7 @@ input_iterator < forward_iterator
 
 ## `iterator_category` を定義する
 
-[`random_access_iterator` に対応する](link?) までで、元の view がイテレータコンセプトを満たす場合に `enumerate_view` が同じイテレータコンセプトを満たす方法を紹介しました。しかし、現在の `enumerate_view` は C++17 以前のイテレータ要件 (規格では _Cpp17InputIterator_ などと呼ばれています) を満たしません。本節では `iterator_category` を定義することで C++17 以前のイテレータ要件を満足させます。
+[`random_access_iterator` に対応する](https://zenn.dev/acd1034/articles/220916-how-to-write-views#random_access_iterator-%E3%81%AB%E5%AF%BE%E5%BF%9C%E3%81%99%E3%82%8B) までで、元の view がイテレータコンセプトを満たす場合に `enumerate_view` が同じイテレータコンセプトを満たす方法を紹介しました。しかし、現在の `enumerate_view` は C++17 以前のイテレータ要件 (規格では _Cpp17InputIterator_ などと呼ばれています) を満たしません。本節では `iterator_category` を定義することで C++17 以前のイテレータ要件を満足させます。
 
 元の view が C++17 以前のイテレータ要件を満たす場合に `V` が同じイテレータ要件を満たすには、`I` が下記の構造体 `deduce_iterator_category` を継承している必要があります。
 
