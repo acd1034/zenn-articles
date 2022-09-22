@@ -458,7 +458,7 @@ input_iterator < forward_iterator
 
 `S` が `std::sized_sentinel_for<I>` コンセプトを満たすには、以下の条件が成立する必要があります。
 
-- イテレータと番兵イテレータ間の減算 `i - s, s - i` が定義されており、戻り値の型が `typename I::difference_type` である
+- **イテレータと番兵イテレータ間の減算 `i - s, s - i` が定義されており、戻り値の型が `typename I::difference_type` である**
   ```cpp
   friend constexpr std::ranges::range_difference_t<View> //
   operator-(const iterator& x, const sentinel& y) requires
@@ -476,7 +476,7 @@ input_iterator < forward_iterator
 
 `V` が `std::ranges::sized_range` コンセプトを満たすには、以下の条件が成立する必要があります。
 
-- `V` にメンバ関数 `size()` が定義されている
+- **`V` にメンバ関数 `size()` が定義されている**
   ```cpp
   constexpr auto size() requires std::ranges::sized_range<View> {
     return std::ranges::size(base_);
