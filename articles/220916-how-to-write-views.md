@@ -766,3 +766,68 @@ inline namespace cpo {
 本記事で扱わなかったこととして、range factory の実装が挙げられます。range factory の view・イテレータ・番兵イテレータについても、実装しなければならないメソッドに変わりはありません。range factory の場合は求める機能に対応するコードが増え、多少煩雑になるのではないかと思います。
 
 誤り等ございましたらコメント頂けますと幸いです。
+
+## 参考文献
+
+#### C++20 策定以後に採択された欠陥報告
+
+- [P2325R3 Views should not be required to be default constructible](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p2325r3.html)
+  `view` コンセプト (厳密には `weakly_incrementable` コンセプト) に `default_initializable` コンセプトが要求されなくなりました。
+- [P2415R2 What is a `view`?](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p2415r2.html)
+  `view` コンセプト に $O(1)$ コピー可能であることが要求されなくなりました。
+
+#### 処理系の対応状況
+
+- [Implementation Status C++ 2023 — The GNU C++ Library Manual](https://gcc.gnu.org/onlinedocs/libstdc++/manual/status.html#status.iso.2023)
+- [libc++ C++20 Status](https://libcxx.llvm.org/Status/Cxx20.html)
+- [VS 2019 16.11.14 — VS 2019 Changelog](https://github.com/microsoft/STL/wiki/VS-2019-Changelog#vs-2019-161114)
+- [VS 2022 17.1 — VS 2022 Changelog](https://github.com/microsoft/STL/wiki/Changelog#vs-2022-171)
+- [VS 2022 17.0 — VS 2022 Changelog](https://github.com/microsoft/STL/wiki/Changelog#vs-2022-170)
+- [MSVC’s STL Completes /std:c++20 — Microsoft C++ Team Blog](https://devblogs.microsoft.com/cppblog/msvcs-stl-completes-stdc20/)
+
+#### `view` の書き方
+
+- [24 Ranges library [ranges] — N4861](https://timsong-cpp.github.io/cppwp/n4861/ranges)
+- [Tutorial: Writing your first view from scratch (C++20 / P0789) — Hannes Hauswedell's homepage](https://hannes.hauswedell.net/post/2018/04/11/view1/)
+- [[C++]<ranges>の std::views と同様に扱える view を自作する。— 賢朽脳瘏](https://kenkyu-note.hatenablog.com/entry/2021/02/20/150512)
+- [[C++]std::ranges::views::zip、enumerate の代替機能を作ってみる。— 賢朽脳瘏](https://kenkyu-note.hatenablog.com/entry/2021/02/21/035242)
+
+#### `input_or_output_iterator` ~ `random_access_iterator`
+
+- [23 Iterators library [iterators] — N4861](https://timsong-cpp.github.io/cppwp/n4861/iterators)
+- [std::input_or_output_iterator — cpprefjp](https://cpprefjp.github.io/reference/iterator/input_or_output_iterator.html) ~ [std::random_access_iterator — cpprefjp](https://cpprefjp.github.io/reference/iterator/random_access_iterator.html)
+  各種イテレータの最小実装例 (`sample_input_or_output_iterator` など) が掲載されています
+- [［C++］ C++17 イテレータ <=> C++20 イテレータ != 0 — 地面を見下ろす少年の足蹴にされる私](https://onihusube.hatenablog.com/entry/2020/12/27/150400)
+  C++20 以降のイテレータコンセプトについて、C++17 以前と比較して説明されています。
+- [イテレータの解説をするなんて今更佳代 — qiita.com/yumetodo](https://qiita.com/yumetodo/items/245e94a0e85db9bf5cbb)
+  C++17 イテレータの書き方について説明されています
+
+#### `iterator_category`
+
+- [23.3.5 C++17 iterator requirements [iterator.cpp17] — N4861](https://timsong-cpp.github.io/cppwp/n4861/iterator.cpp17)
+  C++17 イテレータ要件について
+- [23.3.2.3 Iterator traits [iterator.traits] — N4861](https://timsong-cpp.github.io/cppwp/n4861/iterator.traits)
+  C++17 イテレータ要件の説明専用コンセプト
+- [［C++］C++20 からの iterator_traits 事情 — 地面を見下ろす少年の足蹴にされる私](https://onihusube.hatenablog.com/entry/2020/12/14/002822)
+  C++20 イテレータを C++17 イテレータとして扱う場合の `iterator_traits` の役割について説明されています
+
+#### _const-iterable_
+
+- [Range と View と const 修飾 — yohhoy の日記](https://yohhoy.hatenadiary.jp/entry/20210701/p1)
+  range の const 修飾と view の const 修飾は異なることについて説明されています
+- [filter_view が const-iterable ではない理由 — zenn.dev/onihusube/scraps](https://zenn.dev/onihusube/scraps/40a95c8f769414)
+- [C++20 Range Adaptors and Range Factories — Barry's C++ Blog](https://brevzin.github.io/c++/2021/02/28/ranges-reference/)
+
+#### range adaptor object/range adaptor closure object
+
+- [P2387R3 Pipe support for user-defined range adaptors](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p2387r3.html)
+- [［C++］ ranges のパイプにアダプトするには — 地面を見下ろす少年の足蹴にされる私](https://onihusube.hatenablog.com/entry/2022/04/24/010041)
+  Range アダプタ(クロージャ)オブジェクトの各処理系における実装と使用例について説明されています
+
+#### `enumerate_view`
+
+- [P2164R6 `views::enumerate`](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2022/p2164r6.pdf)
+- [rangesnext — github.com/cor3ntin](https://github.com/cor3ntin/rangesnext)
+  P2164 において `enumerate_view` の実装経験として紹介されています
+
+<!-- emdash: `—` -->
