@@ -12,7 +12,7 @@ published: false
 
 <!-- TODO: range adaptor の導入 -->
 
-C++20 が策定されてから早くも 3 年が経過しようとしています。C++20 で最も影響の大きかった機能は range だったのではないかと個人的には感じています。`std::views::filter` や `std::views::transform` といった range adaptor が導入されたことで、新たにメモリ確保しなくても range に操作を加えた range を作れるようになり、大変便利になりました。
+C++20 が策定されてから早くも 3 年が経過しようとしています。C++20 で影響の大きかった機能の 1 つに range が挙げられるのではないかと思います。`std::views::filter` や `std::views::transform` といった range adaptor が導入されたことで、新たにメモリ確保しなくても range に操作を加えた range を作れるようになり、大変便利になりました。
 
 ```cpp
 for (auto x : std::views::iota(0)
@@ -191,8 +191,6 @@ public:
 
   <!-- TODO: operator== の自動定義について説明する -->
 
-以後 [`sized_sentinel_for`・`sized_range` に対応する](link?) まで、`enumerate_view<View>::sentinel` は触りません。
-
 [本節の差分](https://github.com/acd1034/cpp-example/commit/8a0627754c1fbffb5dfca936148e9745cc9ecb50)
 
 ### `V` を `view` コンセプトに対応させる
@@ -230,8 +228,6 @@ public:
   ```
   <!-- TODO: この推定ガイドの意義について説明する -->
 
-以後 [`sized_sentinel_for`・`sized_range` に対応する](link?) まで、`enumerate_view` は触りません。
-
 [本節の差分](https://github.com/acd1034/cpp-example/commit/38d8d7d8daa2cce3e594f13f68e26bde240aa743)
 
 ## `input_iterator` に対応する
@@ -264,9 +260,6 @@ input_iterator < forward_iterator
 - **必要に応じて非メンバ関数 `iter_move(i)` が定義されている**
 
   `std::ranges::iter_move` にはデフォルトの定義が存在するため、定義は必須ではありません。しかし手動で定義した方がよい場合があります。これについては [`iter_move` について](link?) で説明します。
-  <!-- lvalue-referenceを保持する型(std::pair<std::size_t, T&>など)を返すイテレータは、iter_moveを定義した方がよい -->
-  <!-- lvalue-referenceを保持する型 のことを proxy reference と呼ぶらしい -->
-  <!-- TODO: iter_move はここで定義するか? 後ろで定義するか? -->
 
 [本節の差分](https://github.com/acd1034/cpp-example/commit/69c53e58f19c4c42d8fcdbff17e9452ec1e1ba04)
 
@@ -549,7 +542,7 @@ struct deduce_iterator_category<View> {
 
 しかし間接参照演算子 `*i` が左辺値を保持した右辺値(例えば `std::pair<T&, U&>` など)を返す場合に、上記のデフォルトの定義では上手くムーブすることができません。そのような場合に `iter_move(i)` を手動で定義します。
 
-`enumerate_view` の戻り値は `std::pair<std::size_t, std::ranges::range_reference_t<View>>` であるため、上記の場合に該当します。このとき `enumerate_view` の `iter_move(i)` は以下のように定義できます。
+`enumerate_view` の戻り値は `std::pair<std::size_t, std::ranges::range_reference_t<View>>` であるため、上記の場合に該当します。このとき `enumerate_view` の `iter_move(i)` は以下のように実装することができます。
 
 ```cpp
 friend constexpr std::pair<std::size_t,
@@ -575,7 +568,13 @@ std::ranges::take_view taken(fl, 0);
 static_assert(not std::ranges::common_range<decltype(taken)>);
 ```
 
-C++17 以前のイテレータではイテレータと番兵イテレータの型が一致することは前提とされていました。しかし C++20 以降ではこの 2 者は必ずしも一致しないものとして扱われています。本節では元の view が `common_range` である場合に `enumerate_view` が `common_range` となるよう、以下の変更を加えます。
+C++17 以前のイテレータではイテレータと番兵イテレータの型が一致することは前提とされていました。しかし C++20 以降ではこの 2 者は必ずしも一致しないものとして扱われています。例えば以下の view が `common_range` ではない view として挙げられます。
+
+- range factory から構築される無限 range
+- `sized_range` ではない view の `take_view`
+- `common_range` ではない view を元とする range adaptor
+
+本節では元の view が `common_range` である場合に `enumerate_view` が `common_range` となるよう、以下の変更を加えます。
 
 ```diff cpp
 - constexpr auto end() { return sentinel(std::ranges::end(base_)); }
@@ -642,15 +641,15 @@ STL のコンテナなど、一般的な range は _const-iterable_ ですが、
    ```
 2. メンバ関数 `end()` を `sentinel<false>` (`common_range` の場合は `iterator<false>`) を返すよう変更する
    ```diff cpp
-    constexpr auto end() {
-      if constexpr (std::ranges::common_range<View> and //
-                    std::ranges::sized_range<View>)
-   -    return iterator(std::ranges::end(base_), std::ranges::size(base_));
-   +    return iterator<false>(std::ranges::end(base_), std::ranges::size(base_));
-      else
-   -    return sentinel(std::ranges::end(base_));
-   +    return sentinel<false>(std::ranges::end(base_));
-    }
+     constexpr auto end() {
+       if constexpr (std::ranges::common_range<View> and //
+                     std::ranges::sized_range<View>)
+   -     return iterator(std::ranges::end(base_), std::ranges::size(base_));
+   +     return iterator<false>(std::ranges::end(base_), std::ranges::size(base_));
+       else
+   -     return sentinel(std::ranges::end(base_));
+   +     return sentinel<false>(std::ranges::end(base_));
+     }
    ```
 3. メンバ関数 `begin() const` を定義し、 `iterator<true>` を返すようにする
    ```diff cpp
@@ -738,8 +737,6 @@ inline namespace cpo {
 <!-- TODO: inline namespace について書く -->
 
 本節ではヘルパー関数オブジェクトの詳細まで立ち入ることはできませんでした。その詳細については [［C++］ ranges のパイプにアダプトするには — 地面を見下ろす少年の足蹴にされる私](https://onihusube.hatenablog.com/entry/2022/04/24/010041) において詳しく説明されています。
-
-<!-- [本節の差分](link?) -->
 
 ## 補足: `enumerate_view` の提案について
 
