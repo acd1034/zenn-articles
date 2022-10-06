@@ -30,3 +30,9 @@ template <std::input_iterator I, std::sentinel_for<I> S, class T,
 requires indirectly_binary_invocable<Op&, T*, std::projected<I, Proj>> and
   std::assignable_from<T&, std::indirect_result_t<Op&, T*, std::projected<I, Proj>>>
 constexpr T accumulate(I first, S last, T init, Op op = {}, Proj proj = {});
+// clang-format on
+
+template <class T>
+concept Subtractable = requires(T a, T b) {
+  a - b;
+};
