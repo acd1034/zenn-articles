@@ -52,7 +52,7 @@ constexpr T accumulate(I first, S last, T init, Op op = {}, Proj proj = {});
 
 [^range-v3]: [range-v3/accumulate.hpp at master · ericniebler/range-v3](https://github.com/ericniebler/range-v3/blob/689b4f3da769fb21dd7acf62550a038242d832e5/include/range/v3/numeric/accumulate.hpp#L36-L42)
 
-それではなぜ `ranges::accumulate` は　 range-v3 と同様の型制約で採択されなかったのでしょうか。また一方で、`ranges::fold` はなぜ採択されたのでしょうか。
+それではなぜ、 `ranges::accumulate` は range-v3 と同様の型制約で採択されなかったのでしょうか。また一方で、`ranges::fold` はなぜ採択されたのでしょうか。
 
 これらの問いは STL におけるコンセプトの設計と密接な関係がありそうです。そこで本稿ではまず、 STL におけるコンセプトの設計思想について説明します。続いてそれに基づいて、`ranges::accumulate` が採択されなかった理由、および `ranges::fold` が採択された理由の説明を試みます。
 
@@ -60,7 +60,7 @@ constexpr T accumulate(I first, S last, T init, Op op = {}, Proj proj = {});
 
 ## STL におけるコンセプトの設計
 
-<!-- NOTE: 要注意用語: 要件(requirement)、制約(constraint)、コンセプト -->
+<!-- NOTE: 要注意用語: 要件(requirement)、制約(constraint)、コンセプト、型制約、要求 -->
 
 STL においてコンセプトは、一般的なアルゴリズムを記述するための抽象的な型に対する要件と位置付けられています[^sle2011]。一般性のあるコンセプトの設計指針は、コンセプトの粒度の観点で 2 種類存在します。
 
@@ -79,7 +79,7 @@ STL においてコンセプトは、一般的なアルゴリズムを記述す�
    - **利点**: アルゴリズムの要件が限界まで緩和される。その結果、可能な限り多くのクラスがアルゴリズムを利用できるようになる
    - **欠点**: 要件の意味が不明確となる。アルゴリズムの中心的な要件が伝わらなくなる
 
-[^n2914]: [N2914](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2009/n2914.pdf)
+[^n2914]: [N2914 - Working Draft, Standard for Programming Language C++](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2009/n2914.pdf)
 
 STL は両者のバランスをとることを目指しています。すなわち複数のクラスに適用可能な普遍的なアルゴリズムを提供しつつも、各コンセプトから意味が失われないコンセプト設計を目指しています。<!-- TODO: 文構造の反復を解消する -->
 
@@ -95,7 +95,7 @@ $$
 
 ここで _Constraints_ とは、コンパイル時に検査することのできる構文要件 (syntatic requirements) を表します。一方 _Axioms_ とは、実行時に検査することのできる意味要件 (semantic requirements) を意味します。STL は、コンセプトは構文要件と意味要件の両方を有する要件であると設計しています。<!-- TODO: 「設計」よりも適切な言葉を探す -->
 
-STL はコンセプトを意味のある一般的な要件にするために、とりわけ以下の 2 点に注意して設計を行なっています。<!-- TODO: 文章が何か変 -->
+STL はコンセプトを意味のある一般的な要件にするために、とりわけ以下の 2 点に注意して設計を行なっています。<!-- TODO: 文章がおかしい -->
 
 1. コンセプトに必要な操作をすべて含める[^ccg-t21]
 2. コンセプトに有意義な意味論をもたせる[^ccg-t20]
@@ -112,7 +112,7 @@ concept Subtractable = requires(T a, T b) {
 };
 ```
 
-- **理由**: 制約が小さすぎるため、有意義な意味論を持たせることができない。その結果、_Subtractable_ コンセプトのみ満たすクラスにおいて十分一般的なアルゴリズムを提供することができない。
+- **理由**: 制約が小さすぎるため、有意義な意味論を持たせることができない。その結果、_Subtractable_ コンセプトのみ満たすクラスにおいて十分一般性のあるアルゴリズムを提供することができない。
 - **修正案** (一例):
   `a`, `b` を `T` 型のオブジェクトとして、
   - 次の構文要件を追加する: `+a`, `-a`, `a += b`, `a -= b`, `a + b`
@@ -190,3 +190,77 @@ template<class T>
 ```
 
 [^view]: [[range.view]](https://eel.is/c++draft/range.view)
+
+## range-v3 の accumulate の問題点
+
+STL におけるコンセプト設計を踏まえ、それではなぜ、 `ranges::accumulate` は range-v3 と同様の型制約で採択されなかったのでしょうか。<!-- TODO: 文章がおかしい -->その理由は accumulate という操作が加法と密接に関係している点にあります。
+
+- accumulate というメソッド名
+- 従来 `<numeric>` ヘッダにて提供されてきたという歴史的経緯
+- 二項演算子を表す関数オブジェクトのデフォルト型が `std::plus<>` である
+
+以上のことを考慮すると、accumulate には数値計算アルゴリズムと同様の要件を課すのが自然になります。STL における数値計算アルゴリズムの要件とは、以下の 2 つです。
+
+1. 被演算子の型 `T`, `U` が共通型であること
+   ```cpp
+   common_with<T, U>
+   ```
+2. 演算子の型 `Op` が `T` と `U` の 4 つの組み合わせで呼び出し可能であること (以下、四方呼び出し可能と書きます)
+   ```cpp
+   invocable<Op, T, T> and invocable<Op, U, U> and invocable<Op, T, U> and invocable<Op, U, T>
+   ```
+
+### STL の数値計算アルゴリズム要件の背景
+
+これらの要件は数学的な代数構造の定義に由来します。代数構造の定義では、二項演算子の始域および終域は通常一致することが前提となっています。
+
+- **例**: $G$ を集合、$\ast: G\times G\to G$ を $G$ 上の二項演算子とする。このとき、組 $(G, \ast)$ が群であるとは...
+
+しかし、数値計算においては異なる型同士の計算にも意味をもたせることができ、時に有用です。
+
+- **例**: 精度の異なる浮動小数点数型間の計算
+
+異なる型同士の計算を許可しつつも、数学的な代数構造の定義と矛盾しないために、STL の数値計算アルゴリズムでは被演算子の型が共通型であることを要求しています。<!-- TODO: 事実か推測か明記する。事実なら引用元を、推測なら参考文献を付す -->
+
+- **例**: `atan2`, `pow`, `hypot`, `fmax`, `fmin`, `fdim`, `fma`, `gcd`, `lcm`
+
+### accumulate の要件を修正した場合の課題
+
+以上の数値計算アルゴリズムのもつ背景を踏まえると、accumulate の型制約は以下のように修正されます[^p1813]。
+
+```cpp
+template <class Op, class T, class U>
+concept magma =
+  common_with<T, U> and
+  regular_invocable<Op, T, T> and
+  regular_invocable<Op, U, U> and
+  regular_invocable<Op, T, U> and
+  regular_invocable<Op, U, T> and
+  common_with<invoke_result_t<Op&, T, U>, T> and
+  common_with<invoke_result_t<Op&, T, U>, U> and
+  same_as<invoke_result_t<Op&, T, U>, invoke_result_t<Op&, U, T>>;
+
+template <class Op, class I1, class I2, class O>
+concept indirect_magma =
+  indirectly_readable<I1> and
+  indirectly_readable<I2> and
+  indirectly_writable<O, indirect_result_t<Op&, I1, I2>> and
+  magma<Op&, iter_value_t<I1>&, iter_value_t<I2>&> and
+  magma<Op&, iter_value_t<I1>&, iter_reference_t<I2>&> and
+  magma<Op&, iter_reference_t<I1>, iter_value_t<I2>&> and
+  magma<Op&, iter_reference_t<I1>, iter_reference_t<I2>> and
+  magma<Op&, iter_common_reference_t<I1>, iter_common_reference_t<I2>>;
+
+template <input_iterator I, sentinel_for<I> S, movable T, class Proj = identity,
+          indirect_magma<const T*, projected<I, Proj>, T*> Op = plus<>>
+constexpr accumulate_result<I, T>
+accumulate(I first, S last, T init, Op op = {}, Proj proj = {});
+```
+
+[^p1813]: [P1813R0 A Concept Design for the Numeric Algorithms](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p1813r0.pdf)
+
+しかしこの accmulate の型制約は、以下のような有用な操作を不許可としてしまっています。
+
+- **例**:<!-- TODO: 例を書く -->
+
+このことは、accumulate をこれらの操作を包含するより一般的な形で再定義すべきであることを示唆しています。
