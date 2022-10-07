@@ -184,7 +184,7 @@ template <class T>
 view コンセプトは意味要件が重要であり、構文要件を満たすがコンセプトを満たさない型も少なくありません。そのため view コンセプトを満たすには、view_base を基底クラスにするか enable_view を特殊化することで、明示的に view であることを示す必要があります。
 
 ```cpp
-template<class T>
+template <class T>
   inline constexpr bool enable_view =
     derived_from<T, view_base> || _is-derived-from-view-interface_<T>;
 ```
@@ -302,3 +302,64 @@ constexpr auto fold_left(I first, S last, T init, Op op);
     → 上記の例を含めたより一般的なアルゴリズムへと進化した
   - 戻り値の型が `T` から `decay_t<invoke_result_t<Op&, T, iter_reference_t<I>>>` に変更された
     → `assignable_from` の意味要件 (代入後は代入したオブジェクトと値が一致する) を満たす範囲が拡大された
+
+## 範囲比較アルゴリズムとの類似
+
+このような議論 (被演算子の型が共通型であること、および演算子の型が四方呼び出し可能であることを要求するか?) は、範囲比較アルゴリズムの検討ですでに行われていました。
+
+- [P1716R3 `ranges` compare algorithm are over-constrained](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p1716r3.html)
+- 対象となったアルゴリズム: `find{,_end,_first_of}`, `adjacent_find`, `count`, `mismatch`, `equal`, `search{,_n}`, `replace{,_copy}`, `remove{,_copy}`
+
+これらのアルゴリズムは当初 `relation<Pred&, T, U>` で型制約されていました (すなわち四方呼び出し可能であることが要求されていました)。しかし型制約が過剰であると判断され、`predicate<Pred&, T, U>` に変更されました。
+
+```cpp
+template <class F, class... Args>
+  concept predicate =
+    regular_invocable<F, Args...> and
+    _boolean-testable_<invoke_result_t<F, Args...>>;
+
+template <class R, class T, class U>
+  concept relation =
+    predicate<R, T, T> and predicate<R, U, U> and
+    predicate<R, T, U> and predicate<R, U, T>;
+```
+
+<!-- TODO: 主題の転換を上手く繋げる -->
+
+STL には異なる 2 つの型が等値比較可能であることを表すコンセプトとして、`eqality_comparable_with` が用意されています。このコンセプトは 2 つの型が共通型であることを要求します。一方、`eqality_comparable_with` を用いて制約された STL のアルゴリズムは現時点ではありません。<!-- 現時点、はいつを指している? -->
+
+```cpp
+template <class T, class U>
+  concept _weakly-equality-comparable-with_ = // 説明専用
+    requires(const remove_reference_t<T>& t,
+             const remove_reference_t<U>& u) {
+      { t == u } -> _boolean-testable_;
+      { t != u } -> _boolean-testable_;
+      { u == t } -> _boolean-testable_;
+      { u != t } -> _boolean-testable_;
+    };
+
+template <class T, class U>
+concept equality_comparable_with =
+  std::equality_comparable<T> and
+  std::equality_comparable<U> and
+  std::common_reference_with<
+    const std::remove_reference_t<T>&,
+    const std::remove_reference_t<U>&> and
+  std::equality_comparable<
+    std::common_reference_t<
+      const std::remove_reference_t<T>&,
+      const std::remove_reference_t<U>&>> and
+    _weakly-equality-comparable-with_<T, U>;
+```
+
+:::message
+この定義は C++23 に向けた提案 [P2404R3 Move-only types for equality_comparable_with, totally_ordered_with, and three_way_comparable_with](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2022/p2404r3.pdf) にて変更が加えられましたが、本校では反映できていません。
+:::
+
+範囲比較アルゴリズムの型制約と、fold の型制約の類似点は以下の表のようにまとめられます。範囲比較アルゴリズムで採択された変更を考慮すると、accumulate から fold への移行は、前例を踏襲した進化といえそうです。
+
+|        | 範囲比較アルゴリズム                                           | fold                                          |
+| ------ | -------------------------------------------------------------- | --------------------------------------------- |
+| 不採用 | `equality_comparable_with` <br> 共通型・四方呼び出しを要求する | `magma` <br> 共通型・四方呼び出しを要求する   |
+| 採用   | `predicate<Pred&, T, U>` <br> 上記を要求しない                 | `_foldable_<Op&, T, U>` <br> 上記を要求しない |
