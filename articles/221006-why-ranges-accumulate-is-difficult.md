@@ -27,30 +27,30 @@ accumulate は範囲ライブラリの実装経験である range-v3 で実装�
 ```cpp
 template <class F, class I1, class I2>
 concept indirectly_binary_invocable =
-  std::indirectly_readable<I1> and
-  std::indirectly_readable<I2> and
-  std::copy_constructible<F> and
-  std::invocable<F&, std::iter_value_t<I1>&, std::iter_value_t<I2>&> and
-  std::invocable<F&, std::iter_value_t<I1>&, std::iter_reference_t<I2>> and
-  std::invocable<F&, std::iter_reference_t<I1>, std::iter_value_t<I2>&> and
-  std::invocable<F&, std::iter_reference_t<I1>, std::iter_reference_t<I2>> and
-  std::invocable<F&, std::iter_common_reference_t<I1>, std::iter_common_reference_t<I2>> and
-  __common_reference_with<
-    std::invoke_result_t<F&, std::iter_value_t<I1>&, std::iter_value_t<I2>&>,
-    std::invoke_result_t<F&, std::iter_value_t<I1>&, std::iter_reference_t<I2>>,
-    std::invoke_result_t<F&, std::iter_reference_t<I1>, std::iter_value_t<I2>&>,
-    std::invoke_result_t<F&, std::iter_reference_t<I1>, std::iter_reference_t<I2>>>;
+  indirectly_readable<I1> and
+  indirectly_readable<I2> and
+  copy_constructible<F> and
+  invocable<F&, iter_value_t<I1>&, iter_value_t<I2>&> and
+  invocable<F&, iter_value_t<I1>&, iter_reference_t<I2>> and
+  invocable<F&, iter_reference_t<I1>, iter_value_t<I2>&> and
+  invocable<F&, iter_reference_t<I1>, iter_reference_t<I2>> and
+  invocable<F&, iter_common_reference_t<I1>, iter_common_reference_t<I2>> and
+  common_reference_with<
+    invoke_result_t<F&, iter_value_t<I1>&, iter_value_t<I2>&>,
+    invoke_result_t<F&, iter_value_t<I1>&, iter_reference_t<I2>>,
+    invoke_result_t<F&, iter_reference_t<I1>, iter_value_t<I2>&>,
+    invoke_result_t<F&, iter_reference_t<I1>, iter_reference_t<I2>>>;
 
-template <std::input_iterator I, std::sentinel_for<I> S, class T,
-          class Op = std::plus<>, class Proj = std::identity>
-requires indirectly_binary_invocable<Op&, T*, std::projected<I, Proj>> and
-  std::assignable_from<T&, std::indirect_result_t<Op&, T*, std::projected<I, Proj>>>
+template <input_iterator I, sentinel_for<I> S, class T,
+          class Op = plus<>, class Proj = identity>
+requires indirectly_binary_invocable<Op&, T*, projected<I, Proj>> and
+  assignable_from<T&, indirect_result_t<Op&, T*, projected<I, Proj>>>
 constexpr T accumulate(I first, S last, T init, Op op = {}, Proj proj = {});
 ```
 
 この型制約でも上手くいくように見えますが、この accumulate は採択されませんでした。
 
-[^range-v3]: [range-v3/accumulate.hpp at master · ericniebler/range-v3](https://github.com/ericniebler/range-v3/blob/689b4f3da769fb21dd7acf62550a038242d832e5/include/range/v3/numeric/accumulate.hpp#L36-L42) 可能な限り C++20 の言葉に書き換えてあります
+[^range-v3]: [range-v3/accumulate.hpp at master · ericniebler/range-v3](https://github.com/ericniebler/range-v3/blob/689b4f3da769fb21dd7acf62550a038242d832e5/include/range/v3/numeric/accumulate.hpp#L36-L42)
 
 それではなぜ `ranges::accumulate` は　 range-v3 と同様の型制約で採択されなかったのでしょうか。また一方で、`ranges::fold` はなぜ採択されたのでしょうか。
 
