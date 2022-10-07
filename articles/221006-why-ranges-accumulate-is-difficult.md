@@ -268,7 +268,7 @@ accumulate(I first, S last, T init, Op op = {}, Proj proj = {});
 
 ## fold の改善点
 
-そこで accumulate は型制約はほぼ range-v3 のもののまま、fold として改めて定義されました。fold の型制約は以下のように定義されています。
+そこで accumulate は、型制約はほぼ range-v3 のもののまま、fold として改めて定義されました。fold の型制約は以下のように定義されています。
 
 ```cpp
 template <class Op, class T, class I, class U>
@@ -326,7 +326,7 @@ template <class R, class T, class U>
 
 <!-- TODO: 主題の転換を上手く繋げる -->
 
-STL には異なる 2 つの型が等値比較可能であることを表すコンセプトとして、`eqality_comparable_with` が用意されています。このコンセプトは 2 つの型が共通型であることを要求します。一方、`eqality_comparable_with` を用いて制約された STL のアルゴリズムは現時点ではありません。<!-- 現時点、はいつを指している? -->
+STL には異なる 2 つの型が等値比較可能であることを表すコンセプトとして、`equality_comparable_with` が用意されています。このコンセプトは 2 つの型が共通型であることを要求します。一方、`equality_comparable_with` を用いて制約された STL のアルゴリズムは現時点ではありません。<!-- 現時点、はいつを指している? -->
 
 ```cpp
 template <class T, class U>
