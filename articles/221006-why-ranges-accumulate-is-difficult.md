@@ -354,7 +354,7 @@ concept equality_comparable_with =
 ```
 
 :::message
-この定義は C++23 に向けた提案 [P2404R3 Move-only types for equality_comparable_with, totally_ordered_with, and three_way_comparable_with](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2022/p2404r3.pdf) にて変更が加えられましたが、本校では反映できていません。
+この定義は C++23 に向けた提案 [P2404R3 Move-only types for equality_comparable_with, totally_ordered_with, and three_way_comparable_with](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2022/p2404r3.pdf) にて変更が加えられましたが、本稿では反映できていません。
 :::
 
 範囲比較アルゴリズムの型制約と、fold の型制約の類似点は以下の表のようにまとめられます。範囲比較アルゴリズムで採択された変更を考慮すると、accumulate から fold への移行は、前例を踏襲した進化といえそうです。
@@ -363,3 +363,14 @@ concept equality_comparable_with =
 | ------ | -------------------------------------------------------------- | --------------------------------------------- |
 | 不採用 | `equality_comparable_with` <br> 共通型・四方呼び出しを要求する | `magma` <br> 共通型・四方呼び出しを要求する   |
 | 採用   | `predicate<Pred&, T, U>` <br> 上記を要求しない                 | `_foldable_<Op&, T, U>` <br> 上記を要求しない |
+
+## おわりに
+
+本稿では accumulate の型制約の正しさについて検討しました。その結果、accumulate は数値型の加法と密接に関係したアルゴリズムと解釈できるため、range-v3 の型制約では妥当ではないことが明らかとなりました。その背景として STL のコンセプトの設計指針、すなわち
+
+- コンセプトは普遍性と有意義な意味論の両者をあわせもつ
+- $Concepts = Constraints + Axioms$
+
+が明らかとなりました。
+
+本稿ではコンセプト (_Concepts_) と制約 (_Constraints_) を意味要件の有無の観点から明確に区別して説明しました。しかし規格ではこの意味での制約 (_Constraints_) という語は現れません。一方、コンセプトの構文要件を満たす場合は「コンセプトを満たす」、コンセプトの構文要件と意味要件の両方を満たす場合は「コンセプトのモデルとなる」と区別して表現されており、コンセプト (_Concepts_) と制約 (_Constraints_) の区別は消失したわけではなさそうです。このような移行がコンセプトにおける意味要件の扱いにどのような変化をもたらしたかについては、今後の課題とします。
