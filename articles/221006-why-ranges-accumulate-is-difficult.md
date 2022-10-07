@@ -374,3 +374,11 @@ concept equality_comparable_with =
 が明らかとなりました。
 
 本稿ではコンセプト (_Concepts_) と制約 (_Constraints_) を意味要件の有無の観点から明確に区別して説明しました。しかし規格ではこの意味での制約 (_Constraints_) という語は現れません。一方、コンセプトの構文要件を満たす場合は「コンセプトを満たす」、コンセプトの構文要件と意味要件の両方を満たす場合は「コンセプトのモデルとなる」と区別して表現されており、コンセプト (_Concepts_) と制約 (_Constraints_) の区別は消失したわけではなさそうです。このような移行がコンセプトにおける意味要件の扱いにどのような変化をもたらしたかについては、今後の課題とします。
+
+## 主要な参考文献
+
+- [Design of Concept Libraries for C++](https://www.stroustrup.com/sle2011-concepts.pdf)
+- [P1813R0 A Concept Design for the Numeric Algorithms](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p1813r0.pdf)
+- [P2214R0 A Plan for C++23 Ranges](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2020/p2214r0.html)
+- [P2322R6 `ranges::fold`](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2022/p2322r6.html)
+- [P1716R3 `ranges` compare algorithm are over-constrained](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p1716r3.html)
