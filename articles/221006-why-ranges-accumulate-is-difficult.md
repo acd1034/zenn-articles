@@ -25,23 +25,23 @@ C++20 で範囲ライブラリが導入されたことで、リスト操作が�
 accumulate は範囲ライブラリの実装経験である range-v3 で実装されており、その型制約は現在以下のようになっています[^range-v3]。この型制約は [最初期](https://github.com/ericniebler/range-v3/commit/8e1302be07b58da25b81383f4df4532df21960a1) よりコンセプト設計の変更を受けて何度も修正されているものの、骨子は変化していないようです。
 
 ```cpp
-template <class F, class I1, class I2>
+template <class Op, class I1, class I2>
 concept indirectly_binary_invocable =
   indirectly_readable<I1> and
   indirectly_readable<I2> and
-  copy_constructible<F> and
-  invocable<F&, iter_value_t<I1>&, iter_value_t<I2>&> and
-  invocable<F&, iter_value_t<I1>&, iter_reference_t<I2>> and
-  invocable<F&, iter_reference_t<I1>, iter_value_t<I2>&> and
-  invocable<F&, iter_reference_t<I1>, iter_reference_t<I2>> and
-  invocable<F&, iter_common_reference_t<I1>, iter_common_reference_t<I2>> and
+  copy_constructible<Op> and
+  invocable<Op&, iter_value_t<I1>&, iter_value_t<I2>&> and
+  invocable<Op&, iter_value_t<I1>&, iter_reference_t<I2>> and
+  invocable<Op&, iter_reference_t<I1>, iter_value_t<I2>&> and
+  invocable<Op&, iter_reference_t<I1>, iter_reference_t<I2>> and
+  invocable<Op&, iter_common_reference_t<I1>, iter_common_reference_t<I2>> and
   common_reference_with<
-    invoke_result_t<F&, iter_value_t<I1>&, iter_value_t<I2>&>,
-    invoke_result_t<F&, iter_value_t<I1>&, iter_reference_t<I2>>,
-    invoke_result_t<F&, iter_reference_t<I1>, iter_value_t<I2>&>,
-    invoke_result_t<F&, iter_reference_t<I1>, iter_reference_t<I2>>>;
+    invoke_result_t<Op&, iter_value_t<I1>&, iter_value_t<I2>&>,
+    invoke_result_t<Op&, iter_value_t<I1>&, iter_reference_t<I2>>,
+    invoke_result_t<Op&, iter_reference_t<I1>, iter_value_t<I2>&>,
+    invoke_result_t<Op&, iter_reference_t<I1>, iter_reference_t<I2>>>;
 
-template <input_iterator I, sentinel_for<I> S, class T,
+template <input_iterator I, sentinel_for<I> S, movable T,
           class Op = plus<>, class Proj = identity>
 requires indirectly_binary_invocable<Op&, T*, projected<I, Proj>> and
   assignable_from<T&, indirect_result_t<Op&, T*, projected<I, Proj>>>
@@ -186,7 +186,7 @@ view コンセプトは意味要件が重要であり、構文要件を満たす
 ```cpp
 template<class T>
   inline constexpr bool enable_view =
-    derived_from<T, view_base> || is-derived-from-view-interface<T>;
+    derived_from<T, view_base> || _is-derived-from-view-interface_<T>;
 ```
 
 [^view]: [[range.view]](https://eel.is/c++draft/range.view)
@@ -207,7 +207,8 @@ STL におけるコンセプト設計を踏まえ、それではなぜ、 `range
    ```
 2. 演算子の型 `Op` が `T` と `U` の 4 つの組み合わせで呼び出し可能であること (以下、四方呼び出し可能と書きます)
    ```cpp
-   invocable<Op, T, T> and invocable<Op, U, U> and invocable<Op, T, U> and invocable<Op, U, T>
+   invocable<Op, T, T> and invocable<Op, U, U> and
+   invocable<Op, T, U> and invocable<Op, U, T>
    ```
 
 ### STL の数値計算アルゴリズム要件の背景
@@ -264,3 +265,40 @@ accumulate(I first, S last, T init, Op op = {}, Proj proj = {});
 - **例**:<!-- TODO: 例を書く -->
 
 このことは、accumulate をこれらの操作を包含するより一般的な形で再定義すべきであることを示唆しています。
+
+## fold の改善点
+
+そこで accumulate は型制約はほぼ range-v3 のもののまま、fold として改めて定義されました。fold の型制約は以下のように定義されています。
+
+```cpp
+template <class Op, class T, class I, class U>
+concept _indirectly-binary-left-foldable-impl_ = // 説明専用
+  movable<T> and
+  movable<U> and
+  convertible_to<T, U> and
+  invocable<Op&, U, iter_reference_t<I>> and
+  assignable_from<U&, invoke_result_t<Op&, U, iter_reference_t<I>>>;
+
+template <class Op, class T, class I>
+concept _indirectly-binary-left-foldable_ = // 説明専用
+  copy_constructible<Op> and
+  indirectly_readable<I> and
+  invocable<Op&, T, iter_reference_t<I>> and
+  convertible_to<
+    invoke_result_t<Op&, T, iter_reference_t<I>>,
+    decay_t<invoke_result_t<Op&, T, iter_reference_t<I>>>> and
+  _indirectly-binary-left-foldable-impl_<
+    Op, T, I, decay_t<invoke_result_t<Op&, T, iter_reference_t<I>>>>;
+
+template <input_iterator I, sentinel_for<I> S, class T,
+          _indirectly-binary-left-foldable_<T, I> Op>
+constexpr auto fold_left(I first, S last, T init, Op op);
+```
+
+- **改善点**:
+  - `fold` という名称に変更され、`Op` のデフォルト型が削除された
+    → アルゴリズムを加法という文脈から切り離すことに成功
+  - 被演算子の型が共通型であること、および演算子の型が四方呼び出し可能であることを要求しなくなった
+    → 上記の例を含めたより一般的なアルゴリズムへと進化した
+  - 戻り値の型が `T` から `decay_t<invoke_result_t<Op&, T, iter_reference_t<I>>>` に変更された
+    → `assignable_from` の意味要件 (代入後は代入したオブジェクトと値が一致する) を満たす範囲が拡大された
