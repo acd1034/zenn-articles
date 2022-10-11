@@ -264,9 +264,41 @@ accumulate(I first, S last, T init, Op op = {}, Proj proj = {});
 
 しかしこの accmulate の型制約は、以下のような有用な操作を不許可としてしまっています。
 
-- **例**:<!-- TODO: 例を書く -->
+- **不許可の例 1**: Word count
 
-このことは、accumulate をこれらの操作を包含するより一般的な形で再定義すべきであることを示唆しています。
+  ```cpp
+  int word_count(const vector<string>& words) {
+    return ranges::accumulate(words, 0, [](int accum, const string& str) {
+      return accum + (str == "word");
+    });
+  }
+  ```
+
+  この例は projection を用いることで accmulate の型制約を満たす形に書き換えることができます。
+
+- **不許可の例 2**: 複素数の vector から複素数を計算する。計算する複素数の絶対値は vector の中で絶対値が最大の複素数の絶対値、偏角は vector の複素数の偏角の総和
+
+  ```cpp
+  using Complex = complex<double>;
+  struct Polar {
+    Complex cartesian() const { return polar(abs, arg); }
+    double abs = 0.0;
+    double arg = 0.0;
+  };
+
+  Complex rotate_greatest_radius(const vector<Complex>& v) {
+    return ranges::accumulate(v, Polar{}, [](Polar p, Complex c) {
+      return Polar{
+        .abs = max(p.abs, abs(c)),
+        .arg = p.arg + arg(c),
+      };
+    }).cartesian();
+  }
+  ```
+
+  この例は projection を用いても accmulate の型制約を満たす形に書き換えることはできません。
+
+これら不許可な例の存在は、accumulate をこれらの操作を包含するより一般的な形で再定義すべきであることを示唆しています。
 
 ## fold の改善点
 
