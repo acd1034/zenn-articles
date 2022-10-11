@@ -6,7 +6,7 @@ topics: [cpp, cpp23, ranges]
 published: false
 ---
 
-<!-- TODO: 概要を書く -->
+- **概要**: 本稿では accumulate の型制約の正しさについて、STL におけるコンセプトの設計指針を基に考察しています
 
 ## はじめに
 
@@ -363,7 +363,7 @@ template <class R, class T, class U>
 
 <!-- TODO: 主題の転換を上手く繋げる -->
 
-また STL には異なる 2 つの型が等値比較可能であることを表すコンセプトとして、`equality_comparable_with` が用意されています。このコンセプトは 2 つの型が共通型であることを要求します。一方、`equality_comparable_with` を用いて制約された STL のアルゴリズムは、本稿執筆時の Working Draft ([N4917](http://open-std.org/jtc1/sc22/wg21/docs/papers/2022/n4917.pdf)) にはありません。<!-- TODO: 現時点、はいつを指している? -->
+また STL には異なる 2 つの型が等値比較可能であることを表すコンセプトとして、`equality_comparable_with` が用意されています。このコンセプトは 2 つの型が共通型であることを要求します。一方、`equality_comparable_with` を用いて制約された STL のアルゴリズムは、本稿執筆時の Working Draft ([N4917](http://open-std.org/jtc1/sc22/wg21/docs/papers/2022/n4917.pdf)) にはありません。
 
 ```cpp
 template <class T, class U>
