@@ -22,7 +22,7 @@ C++20 で範囲ライブラリが導入されたことで、リスト操作が�
 
 [^why]: [Why didn't `accumulate` make it into Ranges for C++20? - Stack Overflow](https://stackoverflow.com/questions/63933163/why-didnt-accumulate-make-it-into-ranges-for-c20)
 
-accumulate は範囲ライブラリの実装経験である range-v3 で実装されており、その型制約は現在以下のようになっています[^range-v3]。この型制約は [最初期](https://github.com/ericniebler/range-v3/commit/8e1302be07b58da25b81383f4df4532df21960a1) よりコンセプト設計の変更を受けて何度も修正されているものの、骨子は変化していないようです。
+accumulate は範囲ライブラリの実装経験である range-v3 で実装されており、その型制約は現在以下のようになっています[^range-v3]。この型制約は [最初期](https://github.com/ericniebler/range-v3/commit/8e1302be07b58da25b81383f4df4532df21960a1) よりコンセプト設計の変更を受けて何度も修正されているものの、骨子は変化していません。
 
 ```cpp
 template <class Op, class I1, class I2>
@@ -52,9 +52,9 @@ constexpr T accumulate(I first, S last, T init, Op op = {}, Proj proj = {});
 
 [^range-v3]: [range-v3/accumulate.hpp at master · ericniebler/range-v3](https://github.com/ericniebler/range-v3/blob/689b4f3da769fb21dd7acf62550a038242d832e5/include/range/v3/numeric/accumulate.hpp#L36-L42)
 
-それではなぜ、 `ranges::accumulate` は range-v3 と同様の型制約で採択されなかったのでしょうか。また一方で、`ranges::fold` はなぜ採択されたのでしょうか。
+なぜ `ranges::accumulate` は range-v3 と同様の型制約で採択されなかったのでしょうか。また一方で、`ranges::fold` はなぜ採択されたのでしょうか。
 
-これらの問いは STL におけるコンセプトの設計と密接な関係がありそうです。そこで本稿ではまず、 STL におけるコンセプトの設計思想について説明します。続いてそれに基づいて、`ranges::accumulate` が採択されなかった理由、および `ranges::fold` が採択された理由の説明を試みます。
+これらの問いは STL におけるコンセプトの設計と密接な関係がありそうです。そこで本稿ではまず、 STL におけるコンセプトの設計思想について説明します。次にそれに基づいて `ranges::accumulate` が採択されなかった理由、および `ranges::fold` が採択された理由の説明を試みます。
 
 本稿は規格関連文書の内容に加え、筆者の考察も含まれます。筆者の不勉強のために、事実とは異なる記述がある可能性があります。お気づきの点がございましたら、コメント頂けますと幸いです。
 
@@ -103,7 +103,7 @@ $$
 [^ccg-t21]: [T.21: Require a complete set of operations for a concept](http://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#t21-require-a-complete-set-of-operations-for-a-concept) 翻訳は [C++ Core Guidelines タイトル日本語訳 - Qiita/tetsurom](https://qiita.com/tetsurom/items/322c7b58cddaada861ff#tconceptsdef-concept-definition-rules--%E3%82%B3%E3%83%B3%E3%82%BB%E3%83%97%E3%83%88%E5%AE%9A%E7%BE%A9%E6%99%82%E3%81%AE%E3%83%AB%E3%83%BC%E3%83%AB) を参考にしました
 [^ccg-t20]: [T.20: Avoid “concepts” without meaningful semantics](http://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#t20-avoid-concepts-without-meaningful-semantics) 翻訳は [C++ Core Guidelines タイトル日本語訳 - Qiita/tetsurom](https://qiita.com/tetsurom/items/322c7b58cddaada861ff#tconceptsdef-concept-definition-rules--%E3%82%B3%E3%83%B3%E3%82%BB%E3%83%97%E3%83%88%E5%AE%9A%E7%BE%A9%E6%99%82%E3%81%AE%E3%83%AB%E3%83%BC%E3%83%AB) を参考にしました
 
-#### ダメな例
+#### よくない例
 
 ```cpp
 template <class T>
@@ -186,7 +186,7 @@ view コンセプトは意味要件が重要であり、構文要件を満たす
 ```cpp
 template <class T>
   inline constexpr bool enable_view =
-    derived_from<T, view_base> || _is-derived-from-view-interface_<T>;
+    derived_from<T, view_base> or _is-derived-from-view-interface_<T>;
 ```
 
 [^view]: [[range.view]](https://eel.is/c++draft/range.view)
@@ -302,7 +302,7 @@ accumulate(I first, S last, T init, Op op = {}, Proj proj = {});
 
 ## fold の改善点
 
-そこで accumulate は、型制約はほぼ range-v3 のもののまま、fold として改めて定義されました。fold の型制約は以下のように定められています。
+そこで accumulate は、型制約はほぼ range-v3 のもののまま、fold として改めて定義されました。fold の型制約は以下のように定められています[^p2322]。
 
 ```cpp
 template <class Op, class T, class I, class U>
@@ -337,11 +337,12 @@ constexpr auto fold_left(I first, S last, T init, Op op);
   - 戻り値の型が `T` から `decay_t<invoke_result_t<Op&, T, iter_reference_t<I>>>` に変更された
     → `assignable_from` の意味要件 (代入後は代入したオブジェクトと値が一致する[^assignable]) を満たす範囲が拡大された
 
+[^p2322]: [P2322R6 `ranges::fold`](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2022/p2322r6.html)
 [^assignable]: [[concept.assignable]/1.5](http://eel.is/c++draft/concept.assignable#1.5)
 
 ## 範囲比較アルゴリズムとの類似
 
-accumulate と fold の差異は、被演算子の型が共通型であること、および演算子の型が _四方呼び出し可能_ であることを、アルゴリズムに要求するか否かにありました。一方このような議論は、C++20 に向けた範囲比較アルゴリズムの検討において、すでに行われていました。
+accumulate と fold の差異は、被演算子の型が共通型であること、および演算子の型が _四方呼び出し可能_ であることを、アルゴリズムの要件に含めるか否かにありました。一方このような議論は、C++20 に向けた範囲比較アルゴリズムの検討において、すでに行われていました。
 
 - [P1716R3 `ranges` compare algorithm are over-constrained](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p1716r3.html)
 - 対象となったアルゴリズム: `find{,_end,_first_of}`, `adjacent_find`, `count`, `mismatch`, `equal`, `search{,_n}`, `replace{,_copy}`, `remove{,_copy}`
