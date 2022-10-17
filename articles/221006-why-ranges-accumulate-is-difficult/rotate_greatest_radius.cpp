@@ -4,6 +4,7 @@
 #include <iostream>
 #include <iterator>
 #include <ranges>
+#include <string>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -68,6 +69,12 @@ Complex rotate_greatest_radius(const vector<Complex>& v) {
   }).cartesian();
 }
 
+string reverse_str(const string& str) {
+  return _ranges::accumulate(str, string{}, [](auto&& str, char c) {
+    return c + std::move(str);
+  });
+}
+
 int main() {
   vector<Complex> v{
     {1., 1.},
@@ -75,4 +82,5 @@ int main() {
     {3., 3.},
   };
   std::cout << rotate_greatest_radius(v) << std::endl;
+  std::cout << reverse_str("string"s) << std::endl;
 }
