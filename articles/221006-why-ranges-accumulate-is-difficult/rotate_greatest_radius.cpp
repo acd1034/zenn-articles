@@ -71,7 +71,7 @@ Complex rotate_greatest_radius(const vector<Complex>& v) {
 
 string reverse_str(const string& str) {
   return _ranges::accumulate(str, string{}, [](auto&& str, char c) {
-    return c + std::move(str);
+    return c + forward<decltype(str)>(str);
   });
 }
 
