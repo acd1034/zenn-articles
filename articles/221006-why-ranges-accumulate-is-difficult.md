@@ -3,10 +3,10 @@ title: なぜ ranges::accumulate は難しいのか
 emoji: 📚
 type: tech
 topics: [cpp, cpp23, ranges]
-published: false
+published: true
 ---
 
-- **概要**: 本稿では accumulate の型制約の正しさについて、STL におけるコンセプトの設計指針を基に考察しています
+- **概要**: 本稿では accumulate の型制約の妥当性について、STL におけるコンセプトの設計指針を基に考察しています
 
 ## はじめに
 
@@ -225,7 +225,7 @@ template <class T>
 
 異なる型同士の計算を許可しつつも、数学的な代数構造の定義と矛盾しないために、STL の数値計算アルゴリズムでは被演算子の型が共通型であることを要求していると思われます。<!-- TODO: 事実か推測か明記する。事実なら引用元を、推測なら参考文献を付す -->
 
-- **例**: `atan2`, `pow`, `hypot`, `fmax`, `fmin`, `fdim`, `fma`, `gcd`, `lcm`
+- **例**: `atan2`, `pow`, `hypot`, `fmax`, `fmin`, `fdim`, `fma`, `gcd`, `lcm` など
 
 ### accumulate の要件を修正した場合の課題
 
@@ -274,29 +274,17 @@ accumulate(I first, S last, T init, Op op = {}, Proj proj = {});
   }
   ```
 
-  この例は projection を用いることで accmulate の型制約を満たす形に書き換えることができます。
+  この例は projection を用いることで accmulate の型制約を満たす形に書き換えることができます。一方、次の例はそのような書き換えはできません。
 
-- **不許可の例 2**: 複素数の vector から複素数を計算する。計算する複素数の絶対値は vector の中で絶対値が最大の複素数の絶対値、偏角は vector の複素数の偏角の総和
+- **不許可の例 2**: Reverse string
 
   ```cpp
-  using Complex = complex<double>;
-  struct Polar {
-    Complex cartesian() const { return polar(abs, arg); }
-    double abs = 0.0;
-    double arg = 0.0;
-  };
-
-  Complex rotate_greatest_radius(const vector<Complex>& v) {
-    return ranges::accumulate(v, Polar{}, [](Polar p, Complex c) {
-      return Polar{
-        .abs = max(p.abs, abs(c)),
-        .arg = p.arg + arg(c),
-      };
-    }).cartesian();
+  string reverse_str(const string& str) {
+    return ranges::accumulate(str, string{}, [](auto&& str, char c) {
+      return c + forward<decltype(str)>(str);
+    });
   }
   ```
-
-  この例は projection を用いても accmulate の型制約を満たす形に書き換えることはできません。
 
 これら不許可な例の存在は、accumulate をこれらの操作を包含するより一般的な形で再定義すべきであることを示唆しています。
 
@@ -403,14 +391,14 @@ concept equality_comparable_with =
 
 ## おわりに
 
-本稿では accumulate の型制約の正しさについて検討しました。その結果、accumulate は数値型の加法と密接に関係したアルゴリズムと解釈できるため、range-v3 の型制約では妥当ではないことが考えられました。その背景として STL のコンセプトの設計指針、すなわち
+本稿では accumulate の型制約の妥当性について検討しました。その結果、accumulate は数値型の加法と密接に関係したアルゴリズムと解釈できるため、range-v3 の型制約では妥当ではないことが考えられました。その背景として STL のコンセプトの設計指針、すなわち
 
 - コンセプトは普遍性と有意義な意味論の両者をあわせもつ
 - $Concepts = Constraints + Axioms$
 
-の存在が明らかとなりました。
+の存在があることがわかりました。
 
-本稿ではコンセプト (_Concepts_) と制約 (_Constraints_) を意味要件の有無の観点から明確に区別して説明しました。しかし規格ではこの意味での制約 (_Constraints_) という語は現れません。一方、コンセプトの構文要件を満たす場合は「コンセプトを満たす」、コンセプトの構文要件と意味要件の両方を満たす場合は「コンセプトのモデルとなる」と区別して表現されており、コンセプト (_Concepts_) と制約 (_Constraints_) の区別は消失したわけではなさそうです。このような移行がコンセプトにおける意味要件の扱いにどのような変化をもたらしたかについては、今後の課題です。
+本稿ではコンセプト (_Concepts_) と制約 (_Constraints_) を意味要件の有無の観点から明確に区別して説明しました。しかし規格ではこの意味での制約 (_Constraints_) という語は現れません。一方、コンセプトの構文要件を満たす場合は「コンセプトを満たす」、コンセプトの構文要件と意味要件の両方を満たす場合は「コンセプトのモデルとなる」と区別して表現されており、コンセプト (_Concepts_) と制約 (_Constraints_) の区別は消失したわけではなさそうです。このような移行がコンセプトにおける意味要件の扱いにどのような変化をもたらしたかについては、調査中です。
 
 ## 主要な参考文献
 
