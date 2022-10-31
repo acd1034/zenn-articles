@@ -33,7 +33,6 @@ https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2022/n4911.html
 | Group | Number | Title | DR |
 | ----- | ------ | ----- | -- |
 | CWG | [P2622R0](http://open-std.org/jtc1/sc22/wg21/docs/papers/2022/p2622r0.html) | Core Language Working Group "ready" Issues for the July, 2022 meeting | True |
-| CWG | [P2622R0](http://open-std.org/jtc1/sc22/wg21/docs/papers/2022/p2622r0.html) | Core Language Working Group "ready" Issues for the July, 2022 meeting | False |
 | CWG | [P2468R2](http://open-std.org/jtc1/sc22/wg21/docs/papers/2022/p2468r2.html) | The Equality Operator You Are Looking For | True |
 | CWG | [P2327R1](http://open-std.org/jtc1/sc22/wg21/docs/papers/2021/p2327r1.pdf) | De-deprecating volatile compound operations | True |
 | CWG | [P2437R1](http://open-std.org/jtc1/sc22/wg21/docs/papers/2022/p2437r1.pdf) | Support for #warning | False |
