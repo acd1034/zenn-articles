@@ -181,6 +181,43 @@ struct negative {
 inline constexpr auto non_negative = negative{}.negate();
 ```
 
-これは、次で述べる `std::forward_like` と組み合わせることで、**クラスオブジェクトの cv・参照修飾でメンバ変数を転送できる** ことを意味しています。
+これは、次で述べる `std::forward_like` と組み合わせることで、**クラスオブジェクトの const・参照修飾でメンバ変数を転送できる** ことを意味しています。
 
 ## `std::forward_like` とは
+
+`std::forward_like` は、第一テンプレート引数の const・参照修飾を用いて、引数を転送する関数です。基本的には `std::forward_like<T>(x)` のように、1 つのテンプレート引数と 1 つの引数を渡して使用します。これによって `T` の const 性をマージし `T` の値カテゴリをコピーした型で、`x` を転送することができます。
+
+```cpp
+void f(int& a, int& b, const int& c, const int& d) {
+  {
+    int&  x = std::forward_like<char&>(a);
+    int&& y = std::forward_like<char>(a);
+    const int&  z = std::forward_like<const char&>(b);
+    const int&& w = std::forward_like<const char>(b);
+  }
+  {
+    const int&  x = std::forward_like<char&>(c);
+    const int&& y = std::forward_like<char>(c);
+    const int&  z = std::forward_like<const char&>(d);
+    const int&& w = std::forward_like<const char>(d);
+  }
+}
+```
+
+`std::forward_like` を用いることで、クラスオブジェクトの const・参照修飾に合わせてメンバ変数を正しく転送することができるようになります。
+
+```cpp
+struct X {
+  int i = 0;
+
+  template <class Self>
+  decltype(auto) f(this Self&& self) {
+    return std::forward_like<Self>(self.i);
+  }
+};
+
+void foo(X& x) {
+  int& a = x.f();             // int& を返す
+  int&& b = std::move(x).f(); // int&& を返す
+}
+```
