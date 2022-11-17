@@ -185,7 +185,9 @@ inline constexpr auto non_negative = negative{}.negate();
 
 ## `std::forward_like` とは
 
-`std::forward_like` は、第一テンプレート引数の const・参照修飾を用いて、引数を転送する関数です。基本的には `std::forward_like<T>(x)` のように、1 つのテンプレート引数と 1 つの引数を渡して使用します。これによって `T` の const 性をマージし `T` の値カテゴリをコピーした型で、`x` を転送することができます。
+`std::forward_like` は、第一テンプレート引数の const・参照修飾を用いて引数を転送する関数です[^forward-like]。基本的には `std::forward_like<T>(x)` のように、1 つのテンプレート引数と 1 つの引数を渡して使用します。これによって `T` の const 性をマージし `T` の値カテゴリをコピーした型で、`x` を転送することができます。
+
+[^forward-like]: [P2445R1 `std::forward_like`](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2022/p2445r1.pdf)
 
 ```cpp
 void f(int& a, int& b, const int& c, const int& d) {
@@ -302,3 +304,15 @@ int main() {
   std::cout << minus_one(42) << std::endl; // 41 を出力
 }
 ```
+
+- [Compiler Explorer での実行例](https://godbolt.org/z/zE51hGa46)
+
+## `std::optional` のモナド的操作
+
+明示的オブジェクトパラメタと `std::forward_like` を用いることで、メンバ関数を簡潔に記述できることを説明しました。その恩恵を受ける STL のクラスの 1 つ (そして [P0847 Deducing `this`](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p0847r7.html) でも度々取り上げられた例) として、`std::optional` が挙げられます。これは、`std::optional` が値を所有するクラスであり、クラスオブジェクトの値カテゴリで所有する値を転送する場面が頻出するためです。
+
+一方、C++23 で `std::optional` に新たなメソッドが追加されました[^monadic-op]。それは `transform`, `and_then`, `or_else` の 3 種類であり、まとめてモナド的操作 (_monadic operation_) と呼ばれています。これらのメソッドも、明示的オブジェクトパラメタと `std::forward_like` を用いることで、簡潔に記述することができます。
+
+[^monadic-op]: [P0798R3 Monadic operations for `std::optional`](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p0798r3.html)
+
+以下では `std::optional` に追加されたモナド的操作の紹介も兼ねて、これらのメソッドの実装例を紹介したいと思います。
