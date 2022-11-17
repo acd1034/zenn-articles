@@ -229,8 +229,6 @@ void foo(X& x) {
 `std::vector`, `std::tuple`, `std::optional` のような、値を所有するクラスの値の参照を簡単に書くことができるようになります。
 
 ```cpp
-#include <utility>
-
 template <class T>
 struct single {
   T value;
@@ -249,5 +247,58 @@ int main() {
   single s(1);
   i = *s;            // i に s.value がコピーされる
   i = *std::move(s); // i に s.value がムーブされる
+}
+```
+
+### 例 2: 完全転送 call wrapper の実装
+
+拙著「[`__perfect_forward` の仕組みと使い方](https://zenn.dev/acd1034/articles/509b011bdf9917)」にて llvm における完全転送 call wrapper の実装上の工夫を紹介しました。完全転送 call wrapper とは、関数呼び出しの際に自身の状態を表す内部変数を自身の const・参照修飾で転送する call wrapper のことです。明示的オブジェクトパラメタと `std::forward_like` を利用することで、完全転送 call wrapper をさらに簡潔に書き下すことができます。ここでは C++23 向けの提案 [P2387R3 Pipe support for user-defined range adaptors](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p2387r3.html) で導入された、`std::bind_back` の実装例を紹介します。
+
+```cpp
+#include <functional>
+#include <iostream>
+#include <tuple>
+#include <type_traits>
+#include <utility>
+
+namespace ns {
+  template <class F, class Seq, class... Bound>
+  struct bind_back_t;
+
+  template <class F, std::size_t... I, class... Bound>
+  struct bind_back_t<F, std::index_sequence<I...>, Bound...> {
+    F f;
+    std::tuple<Bound...> bound;
+
+    template <class Self, class... Args>
+    constexpr auto operator()(this Self&& self, Args&&... args) noexcept(
+      noexcept(   std::invoke(std::forward_like<Self>(self.f),
+                              std::forward<Args>(args)...,
+                              std::forward_like<Self>(std::get<I>(self.bound))...)))
+      -> decltype(std::invoke(std::forward_like<Self>(self.f),
+                              std::forward<Args>(args)...,
+                              std::forward_like<Self>(std::get<I>(self.bound))...)) {
+      return      std::invoke(std::forward_like<Self>(self.f),
+                              std::forward<Args>(args)...,
+                              std::forward_like<Self>(std::get<I>(self.bound))...);
+    }
+  };
+
+  template <class F, class... Args>
+  requires std::is_constructible_v<std::decay_t<F>, F> and
+           std::is_move_constructible_v<std::decay_t<F>> and
+           (std::is_constructible_v<std::decay_t<Args>, Args> and ...) and
+           (std::is_move_constructible_v<std::decay_t<Args>> and ...)
+  constexpr bind_back_t<std::decay_t<F>,
+                        std::index_sequence_for<Args...>,
+                        std::decay_t<Args>...>
+  bind_back(F&& f, Args&&... args) {
+    return {std::forward<F>(f), {std::forward<Args>(args)...}};
+  }
+}
+
+int main() {
+  constexpr auto minus_one = ns::bind_back(std::minus{}, 1);
+  std::cout << minus_one(42) << std::endl;
 }
 ```
