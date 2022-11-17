@@ -221,3 +221,33 @@ void foo(X& x) {
   int&& b = std::move(x).f(); // int&& を返す
 }
 ```
+
+以下でもっと身近な例を紹介します。
+
+### 例 1: 値を所有するクラスの間接参照
+
+`std::vector`, `std::tuple`, `std::optional` のような、値を所有するクラスの値の参照を簡単に書くことができるようになります。
+
+```cpp
+#include <utility>
+
+template <class T>
+struct single {
+  T value;
+
+  template <class Self>
+  constexpr decltype(auto) operator*(this Self&& self) {
+    return std::forward_like<Self>(self.value);
+  }
+};
+
+template <class T>
+single(T) -> single<T>;
+
+int main() {
+  int i = 0;
+  single s(1);
+  i = *s;            // i に s.value がコピーされる
+  i = *std::move(s); // i に s.value がムーブされる
+}
+```
