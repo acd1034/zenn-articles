@@ -222,7 +222,7 @@ void foo(X& x) {
 }
 ```
 
-以下でもっと身近な例を紹介します。
+ここまで、明示的オブジェクトパラメタと `std::forward_like` について紹介してきました。この 2 つの機能を組み合わせることで、クラスオブジェクトの値カテゴリに依存したメンバ関数を、重複なく簡潔に記述することが可能となります。以下はもっと身近な使用例を 2 つほど紹介します。
 
 ### 例 1: 値を所有するクラスの間接参照
 
@@ -250,9 +250,9 @@ int main() {
 }
 ```
 
-### 例 2: 完全転送 call wrapper の実装
+### 例 2: 完全転送 call wrapper
 
-拙著「[`__perfect_forward` の仕組みと使い方](https://zenn.dev/acd1034/articles/509b011bdf9917)」にて llvm における完全転送 call wrapper の実装上の工夫を紹介しました。完全転送 call wrapper とは、関数呼び出しの際に自身の状態を表す内部変数を自身の const・参照修飾で転送する call wrapper のことです。明示的オブジェクトパラメタと `std::forward_like` を利用することで、完全転送 call wrapper をさらに簡潔に書き下すことができます。ここでは C++23 向けの提案 [P2387R3 Pipe support for user-defined range adaptors](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p2387r3.html) で導入された、`std::bind_back` の実装例を紹介します。
+拙著「[`__perfect_forward` の仕組みと使い方](https://zenn.dev/acd1034/articles/509b011bdf9917)」にて llvm における完全転送 call wrapper の実装上の工夫を紹介しました。完全転送 call wrapper とは、関数呼び出しの際に、自身の状態を表す内部変数を自身の const・参照修飾で転送する call wrapper のことです。明示的オブジェクトパラメタと `std::forward_like` を利用することで、完全転送 call wrapper をさらに簡潔に書き下すことができます。ここでは C++23 向けの提案 [P2387R3 Pipe support for user-defined range adaptors](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p2387r3.html) で導入された、`std::bind_back` の実装例を紹介します。
 
 ```cpp
 #include <functional>
@@ -299,6 +299,6 @@ namespace ns {
 
 int main() {
   constexpr auto minus_one = ns::bind_back(std::minus{}, 1);
-  std::cout << minus_one(42) << std::endl;
+  std::cout << minus_one(42) << std::endl; // 41 を出力
 }
 ```
