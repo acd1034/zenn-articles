@@ -316,3 +316,123 @@ int main() {
 [^monadic-op]: [P0798R3 Monadic operations for `std::optional`](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p0798r3.html)
 
 以下では `std::optional` に追加されたモナド的操作の紹介も兼ねて、これらのメソッドの実装例を紹介したいと思います。
+
+### `transform`
+
+```cpp
+template <class Self, class F>
+constexpr auto transform(this Self&& self, F&& f);
+```
+
+`transform` は呼び出し可能なオブジェクト `f` を受け取り、無効値はそのまま、有効値は `f` を適用した値をもつ有効値に変換するメソッドです。
+▼ 使用例
+
+```cpp
+int main() {
+  std::optional o(std::string("hello"));
+  std::cout << o.transform(&std::string::size).value() << std::endl; // 5 を出力
+}
+```
+
+▼ 実装例
+
+```cpp
+// @@ struct optional {
+  template <class Self, std::invocable<__forward_like_t<Self, T>> F>
+  constexpr auto transform(this Self&& self, F&& f)
+    -> optional<std::remove_cvref_t<std::invoke_result_t<F&&, __forward_like_t<Self, T>>>> {
+    if (self)
+      return std::invoke(std::forward<F>(f), std::forward_like<Self>(*self));
+    else
+      return std::nullopt;
+  }
+```
+
+ただし、`__forward_like_t` は `std::forward_like` の戻り値の型を表すエイリアステンプレートです (STL にないことを表すために、先頭に `__` を付けています)。
+
+```cpp
+template <class T, class U>
+using __forward_like_t = decltype(std::forward_like<T>(std::declval<U>()));
+```
+
+### `and_then`
+
+```cpp
+template <class Self, class F>
+constexpr auto and_then(this Self&& self, F&& f);
+```
+
+`and_then` も `transform` と同様に、呼び出し可能なオブジェクト `f` で有効値を変換するメソッドです。ただし、`and_then` で受け取る呼び出し可能オブジェクト `f` は、`optional` を返す必要があります。これによって、有効値を保持する `optional` に対して、失敗するかもしれない操作を行うことができます。
+▼ 使用例
+
+```cpp
+int main() {
+  constexpr auto head = [](const std::string& str) -> std::optional<char> {
+    if (str.empty())
+      return std::nullopt;
+    else
+      return str.front();
+  };
+  std::optional o(std::string("hello"));
+  std::cout << o.and_then(head).value() << std::endl; // h を出力
+}
+```
+
+▼ 実装例
+
+```cpp
+// @@ struct optional {
+  template <class Self, std::invocable<__forward_like_t<Self, T>> F>
+  requires __is_optional_v<
+    std::remove_cvref_t<std::invoke_result_t<F&&, __forward_like_t<Self, T>>>>
+  constexpr auto and_then(this Self&& self, F&& f)
+    -> decltype(std::invoke(std::forward<F>(f), std::forward_like<Self>(*self))) {
+    if (self)
+      return std::invoke(std::forward<F>(f), std::forward_like<Self>(*self));
+    else
+      return std::nullopt;
+  }
+```
+
+ただし、`__is_optional_v` は `optional` であるか否かを表す変数テンプレートです。
+
+```cpp
+template <class T>
+inline constexpr bool __is_optional_v = false;
+template <class T>
+inline constexpr bool __is_optional_v<optional<T>> = true;
+```
+
+### `or_else`
+
+```cpp
+template <class Self, class F>
+constexpr auto or_else(this Self&& self, F&& f);
+```
+
+`transform`, `and_then` が有効値を変換するメソッドであるのに対し、`or_else` は無効値を変換するメソッドです。`or_else` は引数を取らず、`optional<T>` を返す呼び出し可能オブジェクト `f` を受け取ります。そして有効値はそのまま、無効値は `f()` に変換します。
+▼ 使用例
+
+```cpp
+int main() {
+  std::optional<std::string> o = std::nullopt;
+  // 無効値は空の文字列に変換して続行
+  std::cout << o.or_else([] { return std::optional(std::string()); }).value() << std::endl;
+}
+```
+
+▼ 実装例
+
+```cpp
+// @@ struct optional {
+  template <class Self, std::invocable F>
+  requires std::same_as<std::remove_cvref_t<std::invoke_result_t<F&&>>, optional<T>>
+  constexpr optional<T> or_else(this Self&& self, F&& f) {
+    if (self)
+      return std::forward<Self>(self);
+    else
+      return std::invoke(std::forward<F>(f));
+  }
+```
+
+- [Compiler Explorer での実行例](https://godbolt.org/z/qKn53KczK)
