@@ -25,7 +25,7 @@ published: false
 
 [^my-wish]: 今後すべてのメンバ関数を明示的オブジェクトパラメタを用いて宣言したいくらい
 
-## 明示的オブジェクトパラメタとは?
+## 明示的オブジェクトパラメタとは
 
 オブジェクトパラメタ (_object parameter_) とは、クラスのメンバ関数内で、クラスオブジェクト自身を指すパラメタのことです。C++では、クラスオブジェクト自身のポインタを指すキーワードとして、`this` を使用することができます。これはメンバ関数内で暗黙的に宣言されるため、暗黙的オブジェクトパラメタ (_implicit object parameter_) と呼ばれます。
 
@@ -159,6 +159,28 @@ void f() {
   }
   ```
 
-  この仕様は武器にもなり得ますが、意図せぬ動作を引き起こす凶器にもなり得ます。
+  この仕様は武器にもなりますが、意図せぬ動作を引き起こす凶器にもなり得ます。
 
 <!-- TODO: メンバ関数ポインタの型について -->
+
+### メリット
+
+明示的オブジェクトパラメタを forwarding reference で受け取ることで、クラスオブジェクトの cv・参照修飾を推定することができます。これによって、メンバ関数内でクラスオブジェクトを完全転送することができるようになります。
+
+```cpp
+struct negative {
+  constexpr bool operator()(int x) const { return x < 0; }
+
+  template <class Self>
+  constexpr auto negate(this Self&& self) {
+    return std::not_fn(std::forward<Self>(self));
+    //                 ^~~~~~~~~~~~~~~~~~~~~~~~ self を完全転送できる
+  }
+};
+
+inline constexpr auto non_negative = negative{}.negate();
+```
+
+これは、次で述べる `std::forward_like` と組み合わせることで、**クラスオブジェクトの cv・参照修飾でメンバ変数を転送できる** ことを意味しています。
+
+## `std::forward_like` とは
