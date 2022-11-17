@@ -45,3 +45,47 @@ struct X {
 };
 ```
 
+### どうやって明示的オブジェクトパラメタを宣言できるか?
+
+明示的オブジェクトパラメタを導入するために、メンバ関数を宣言する新たな構文が追加されました。その構文では、メンバ関数の最初のパラメタの先頭に、`this` キーワードを付けることができます。
+
+```cpp
+struct X {
+  // const X&　型のクラスオブジェクトを受け取る
+  void f1(this const X& self);
+  // X&&　型のクラスオブジェクトを受け取る
+  void f1(this X&& self);
+
+  // クラスオブジェクトの型をテンプレートパラメタにすることもできる
+  template <class Self>
+  void f2(this const Self& self);
+
+  // クラスオブジェクトを forwarding reference で受け取ることもできる
+  template <class Self>
+  void f3(this Self&& self);
+
+  // テンプレートパラメタを auto にすることもできる
+  void f4(this auto&& self);
+};
+
+void foo(X& x) {
+  // メンバ関数と同じ構文で呼び出すことができる。f2, f3, f4 も同様
+  x.f1();
+}
+```
+
+この構文はラムダ式でも使用することができます。
+
+```cpp
+void f() {
+  int captured = 0;
+  // ラムダ式でも明示的オブジェクトパラメタを宣言できる
+  auto lambda = [captured](this auto&& self) -> decltype(auto) {
+    return std::forward_like<decltype(self)>(captured);
+  };
+  // 従来と同じ構文で呼び出すことができる
+  lambda();
+}
+```
+
+オブジェクトパラメタのパラメタ名 (上記の例の `self`) は、`self` 以外でも構いません。しかし、他言語の慣例に則って `self` とするのが一般的なようです。
