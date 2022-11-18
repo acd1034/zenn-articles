@@ -223,31 +223,58 @@ void foo(X& x) {
 
 ### 例 1: 値を所有するクラスの間接参照
 
-`std::vector`, `std::tuple`, `std::optional` のような、値を所有するクラスの値の参照を簡単に書くことができるようになります。
-
-<!-- TODO: もう少し面白い例を考えられる? -->
+`std::vector`, `std::tuple`, `std::optional` のような、値を所有するクラスの値の参照を簡単に書くことができるようになります。ここでは簡易的な `tuple` の実装を紹介します。
 
 ```cpp
-template <class T>
-struct single {
-  T value;
+#include <type_traits>
+#include <utility>
+// for main
+#include <format>
+#include <iostream>
+#include <string>
 
-  template <class Self>
-  constexpr decltype(auto) operator*(this Self&& self) {
-    return std::forward_like<Self>(self.value);
-  }
-};
+namespace ns {
+  template <std::size_t I, class T>
+  struct tuple_leaf {
+    T value;
+  };
 
-template <class T>
-single(T) -> single<T>;
+  template <class Seq, class... Ts>
+  struct tuple;
+
+  template <std::size_t I, class T>
+  constexpr tuple_leaf<I, T> at_index(const tuple_leaf<I, T>&);
+
+  template <std::size_t I, class... Ts>
+  struct tuple_index {
+    using type = decltype(at_index<I>(
+      std::declval<tuple<std::index_sequence_for<Ts...>, Ts...>>()));
+  };
+
+  template <std::size_t... Is, class... Ts>
+  struct tuple<std::index_sequence<Is...>, Ts...> : tuple_leaf<Is, Ts>... {
+    template <std::size_t I, class Self>
+    requires (I < sizeof...(Ts))
+    constexpr decltype(auto) get(this Self&& self) {
+      using leaf = typename tuple_index<I, Ts...>::type;
+      return std::forward_like<Self>(static_cast<leaf&>(self).value);
+    }
+  };
+
+  template <class... Ts>
+  tuple(Ts...) -> tuple<std::index_sequence_for<Ts...>, Ts...>;
+} // namespace ns
 
 int main() {
-  int i = 0;
-  single s(1);
-  i = *s;            // i に s.value がコピーされる
-  i = *std::move(s); // i に s.value がムーブされる
+  ns::tuple t{0, 3.14, std::string("hello")};
+  std::cout << std::format("({}, {}, {})\n",
+                           t.template get<0>(),
+                           t.template get<1>(),
+                           t.template get<2>()); // (0, 3.14, "hello") を出力
 }
 ```
+
+- [Compiler Explorer での実行例](https://godbolt.org/z/qxMYa8Ef4)
 
 ### 例 2: 完全転送 call wrapper
 
