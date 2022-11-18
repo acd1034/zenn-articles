@@ -10,22 +10,17 @@ published: false
 この記事は [C++ Advent Calendar 2022](https://qiita.com/advent-calendar/2022/cxx) の n 日目の記事です。
 :::
 
-- **概要**: 本記事では C++23 に向けて採択された以下の論文の機能を紹介しています
-  - [P0847R7 Deducing `this`](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p0847r7.html)
-  - [P2445R1 `std::forward_like`](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2022/p2445r1.pdf)
-  - [P0798R8 Monadic operations for `std::optional`](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p0798r8.html)
+- **概要**: 本記事では C++23 で `std::optional` に導入された、モナド的操作の機能と使用例を紹介しています。さらに他の言語との比較から、新たなエラー伝播の仕組みについても言及しています
 
 ## はじめに
 
-## `std::optional` のモナド的操作
-
-明示的オブジェクトパラメタと `std::forward_like` を用いることで、メンバ関数を簡潔に記述できることを説明しました。その恩恵を受ける STL のクラスの 1 つ (そして [P0847 Deducing `this`](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p0847r7.html) でも度々取り上げられた例) として、`std::optional` が挙げられます。これは、`std::optional` が値を所有するクラスであり、クラスオブジェクトの値カテゴリで所有する値を転送する場面が頻出するためです。
+メンバ関数の新しい書き方、あるいは Deducing this <!-- TODO: リンク -->において、明示的オブジェクトパラメタと `std::forward_like` を用いることで、メンバ変数の転送を簡潔に記述できることを説明しました。その恩恵を受ける STL のクラスの 1 つ (そして [P0847 Deducing `this`](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p0847r7.html) でも度々取り上げられた例) として、`std::optional` が挙げられます。これは、`std::optional` が値を所有するクラスであり、クラスオブジェクトの値カテゴリで所有する値を転送する場面が頻出するためです。
 
 一方、C++23 で `std::optional` に新たなメソッドが追加されました[^monadic-op]。それは `transform`, `and_then`, `or_else` の 3 種類であり、まとめてモナド的操作 (_monadic operation_) と呼ばれています。これらのメソッドも、明示的オブジェクトパラメタと `std::forward_like` を用いることで、簡潔に記述することができます。
 
 [^monadic-op]: [P0798R8 Monadic operations for `std::optional`](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p0798r8.html)
 
-以下では `std::optional` に追加されたモナド的操作の紹介も兼ねて、これらのメソッドの実装例を紹介したいと思います。
+以下では `std::optional` に追加されたモナド的操作の紹介も兼ねて、明示的オブジェクトパラメタを用いたこれらのメソッドの実装例を紹介したいと思います。
 
 ### `transform`
 
@@ -274,7 +269,7 @@ fn main() {
 }
 ```
 
-わざと C++ の例と同じロジックで記述し、変数名や `optional` (Haskell では `Maybe`, Rust では `Option`) の使用箇所も揃えてあります。Haskell や Rust の方が随分すっきりした見た目に見えるのではないでしょうか。実は Haskell や Rust の簡潔な見た目の裏側には、強力な言語機能の存在があります。<!-- くどい? -->
+わざと C++ の例と同じロジックで記述し、変数名や `optional` (Haskell では `Maybe`, Rust では `Option`) の使用箇所も揃えてあります。Haskell や Rust の方が随分すっきりした見た目に見えるのではないでしょうか。実は Haskell や Rust の簡潔な見た目の裏側には、強力な言語機能の存在があります。<!-- TODO: くどい? -->
 
 Haskell では、**do 記法** (_do notation_) と呼ばれる構文を使用することができます。これは、モナド則をみたすオブジェクトに対して実行する `and_then` (Haskell では中置記法の二項演算子 `>>=`) で記述される連続操作を、簡潔に書き下すための糖衣構文です。
 
@@ -342,7 +337,7 @@ fn parse_expr(s: &str) -> Option<i32> {
 
 ### C++ でも同じ書き方はできないの?
 
-現時点ではできません。しかし Rust と同様のエラー伝播演算子の導入が提案されています。
+現時点ではできません。しかし、Rust と同様のエラー伝播演算子の導入が提案されています。
 
 - [P2561 An error propagation operator](https://wg21.link/p2561)
 
@@ -367,3 +362,12 @@ constexpr auto parse_expr(string_view sv) -> optional<int32_t> {
 [^consensus]: https://github.com/cplusplus/papers/issues/1276#issuecomment-1310804047
 
 ## おわりに
+
+C++23 で導入された、`std::optional` のモナド的操作の実装例と使用例を紹介しました。本記事では触れませんでしたが、C++23 では正常値と異常値の両方を表現できる、`std::expected` の導入も決定されています。`std::expected` でも `std::optional` と同様のモナド的操作が提供される予定です。
+
+さらに、操作の継続・中断を実現できる、エラー伝播演算子の提案についても軽く触れました。もしこの提案が C++23 に向けて採択されれば、C++20 から C++23 への移行でエラー処理の方法が革命的に変わります。そうなれば C++23 は、メジャーアップデートと呼んで差し支えない影響を持ちそうです。
+
+## 主要な参考文献
+
+- [P0798R8 Monadic operations for `std::optional`](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p0798r8.html)
+- [P2561R1 An error propagation operator](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2022/p2561r1.html)
