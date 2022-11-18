@@ -321,7 +321,7 @@ namespace ns {
   bind_back(F&& f, Args&&... args) {
     return {std::forward<F>(f), {std::forward<Args>(args)...}};
   }
-}
+} // namespace ns
 
 int main() {
   constexpr auto minus_one = ns::bind_back(std::minus{}, 1);
