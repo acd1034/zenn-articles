@@ -47,7 +47,7 @@ struct X {
 };
 ```
 
-### どうやって明示的オブジェクトパラメタを宣言できるか?
+### どうすれば明示的オブジェクトパラメタを宣言できる?
 
 明示的オブジェクトパラメタを導入するために、メンバ関数を宣言する新たな構文が追加されました。その構文では、メンバ関数の最初のパラメタの先頭に、`this` キーワードを付けることができます。
 
@@ -639,6 +639,7 @@ fn parse_expr(s: &str) -> Option<i32> {
 C++23 策定終了まで残りわずかですが、言語機能を設計する作業グループでは、この提案にリソースを投入することに合意がとれているようです[^consensus]。もしかしたら将来、C++でもこのような記法が実現されるかもしれません。
 
 ```cpp
+// 将来の書き方??
 constexpr auto parse_expr(string_view sv) -> optional<int32_t> {
   const auto toks = sv | views::split(' ') | ranges::to<vector>();
   auto n = parse<int32_t>(string_view(toks[0]))??;
