@@ -10,10 +10,7 @@ published: false
 この記事は [C++ Advent Calendar 2022](https://qiita.com/advent-calendar/2022/cxx) の 1 日目の記事です。
 :::
 
-- **概要**: 本記事では C++23 に向けて採択された以下の論文の機能を紹介しています
-  - [P0847R7 Deducing `this`](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p0847r7.html)
-  - [P2445R1 `std::forward_like`](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2022/p2445r1.pdf)
-  - [P0798R8 Monadic operations for `std::optional`](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p0798r8.html)
+- **概要**: C++23 でクラスのメンバ関数の書き方が拡張された結果、明示的オブジェクトパラメタを使用することができるようになりました。本記事ではその機能の提案文書 [P0847R7 Deducing `this`](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p0847r7.html) の内容と、新たな機能の使い方について紹介しています
 
 ## はじめに
 
@@ -21,7 +18,7 @@ published: false
 
 [^kona]: [Trip report: Autumn ISO C++ standards meeting (Kona) - Sutter’s Mill](https://herbsutter.com/2022/11/12/trip-report-autumn-iso-c-standards-meeting-kona/)
 
-個人的に C++23 最大の機能は、[P0847 Deducing `this`](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p0847r7.html) にて提案された **明示的オブジェクトパラメタの導入** だと感じています[^my-wish]。そこで本記事では [P0847 Deducing `this`](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p0847r7.html) と、これに隣接する 2 つの論文で導入された機能を紹介します。
+個人的に C++23 最大の機能は、[P0847 Deducing `this`](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p0847r7.html) にて提案された、**明示的オブジェクトパラメタの導入** だと感じています[^my-wish]。そこで本記事では新たに追加された機能の内容と、その使い方を紹介します。
 
 [^my-wish]: 今後すべてのメンバ関数を明示的オブジェクトパラメタを用いて宣言したいくらい
 
@@ -159,7 +156,7 @@ void f() {
   }
   ```
 
-  この仕様は武器にもなりますが、意図せぬ動作を引き起こす凶器にもなり得ます。<!-- くどい? -->
+  この仕様は武器にもなりますが、意図せぬ動作を引き起こす凶器にもなり得ます。<!-- TODO: くどい? -->
 
 <!-- TODO: メンバ関数ポインタの型について -->
 
@@ -185,9 +182,7 @@ inline constexpr auto non_negative = negative{}.negate();
 
 ## `std::forward_like` とは
 
-`std::forward_like` は、第一テンプレート引数の const・参照修飾を用いて引数を転送する関数です[^forward-like]。基本的には `std::forward_like<T>(x)` のように、1 つのテンプレート引数と 1 つの引数を渡して使用します。これによって `T` の const 性をマージし `T` の値カテゴリをコピーした型で、`x` を転送することができます。
-
-[^forward-like]: [P2445R1 `std::forward_like`](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2022/p2445r1.pdf)
+`std::forward_like` は、C++23 に向けて採択された提案 [P2445R1 `std::forward_like`](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2022/p2445r1.pdf) において導入されました。これは、第一テンプレート引数の const・参照修飾を用いて引数を転送する関数です。基本的には `std::forward_like<T>(x)` のように、1 つのテンプレート引数と 1 つの引数を渡して使用します。これによって `T` の const 性をマージし `T` の値カテゴリをコピーした型で、`x` を転送することができます。
 
 ```cpp
 void f(int& a, int& b, const int& c, const int& d) {
@@ -229,6 +224,8 @@ void foo(X& x) {
 ### 例 1: 値を所有するクラスの間接参照
 
 `std::vector`, `std::tuple`, `std::optional` のような、値を所有するクラスの値の参照を簡単に書くことができるようになります。
+
+<!-- TODO: もう少し面白い例を考えられる? -->
 
 ```cpp
 template <class T>
@@ -308,3 +305,17 @@ int main() {
 - [Compiler Explorer での実行例](https://godbolt.org/z/zE51hGa46)
 
 ## おわりに
+
+本記事では、メンバ関数の新たな書き方が導入され、明示的オブジェクトパラメタが使用できるようになったこと、およびこれと`std::forward_like` を用いることで、メンバ変数の転送を簡潔に記述できるようになったことを紹介しました。本記事では紹介できませんでしたが、新たな言語機能が導入されたことで、自己再帰ラムダや CRT なしの CRTP など、新たなイディオムが開発 (あるいは発見) されています。今回の拡張が新たな可能性をもたらしてくれることは間違いなさそうです。
+
+本記事で紹介した機能は、現時点で以下の処理系で使用できます。
+
+- Deducing `this`: [Visual Studio 2022 17.2 以上](https://learn.microsoft.com/en-us/visualstudio/releases/2022/release-notes-v17.2#whats-new-in-visual-studio-2022-version-1720)
+- `std::forward_like`: [Visual Studio 2022 17.4 以上](https://github.com/microsoft/STL/wiki/Changelog#vs-2022-174)
+
+最新の MSVC は、[Compiler Explorer](https://godbolt.org/z/znaj6Waz6) で使用することもできます。試してみてください。
+
+## 主要な参考文献
+
+- [P0847R7 Deducing `this`](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p0847r7.html)
+- [P2445R1 `std::forward_like`](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2022/p2445r1.pdf)
