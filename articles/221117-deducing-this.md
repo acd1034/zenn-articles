@@ -13,7 +13,7 @@ published: false
 - **概要**: 本記事では C++23 に向けて採択された以下の論文の機能を紹介しています
   - [P0847R7 Deducing `this`](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p0847r7.html)
   - [P2445R1 `std::forward_like`](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2022/p2445r1.pdf)
-  - [P0798R3 Monadic operations for `std::optional`](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p0798r3.html)
+  - [P0798R8 Monadic operations for `std::optional`](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p0798r8.html)
 
 ## はじめに
 
@@ -313,7 +313,7 @@ int main() {
 
 一方、C++23 で `std::optional` に新たなメソッドが追加されました[^monadic-op]。それは `transform`, `and_then`, `or_else` の 3 種類であり、まとめてモナド的操作 (_monadic operation_) と呼ばれています。これらのメソッドも、明示的オブジェクトパラメタと `std::forward_like` を用いることで、簡潔に記述することができます。
 
-[^monadic-op]: [P0798R3 Monadic operations for `std::optional`](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p0798r3.html)
+[^monadic-op]: [P0798R8 Monadic operations for `std::optional`](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p0798r8.html)
 
 以下では `std::optional` に追加されたモナド的操作の紹介も兼ねて、これらのメソッドの実装例を紹介したいと思います。
 
@@ -436,3 +436,87 @@ int main() {
 ```
 
 - [Compiler Explorer での実行例](https://godbolt.org/z/qKn53KczK)
+
+## モナド的操作の使用例
+
+モナド的操作の使用例として、空白区切りの二項演算を表す文字列を受け取り、計算結果の値を返す関数 `read_expr` を書いてみます。ここで `parse` は数字からなる文字列を受け取り、その数値を返す関数です。この関数は `optional` を返すことに留意して、`and_then` を用いて操作の継続を表します。
+
+```cpp
+#include <cassert>
+#include <charconv>
+#include <concepts>
+#include <optional>
+#include <ranges>
+#include <string_view>
+#include <vector>
+
+template <std::integral Int>
+constexpr auto parse(std::string_view sv) -> std::optional<Int> {
+  Int n{};
+  auto [ptr, ec] = std::from_chars(sv.data(), sv.data() + sv.size(), n);
+  if (ec == std::errc{} and ptr == sv.data() + sv.size())
+    return n;
+  else
+    return std::nullopt;
+}
+
+constexpr auto read_expr(std::string_view sv) {
+  const auto toks =
+    sv | std::views::split(' ') | std::ranges::to<std::vector>();
+  return parse<std::int32_t>(std::string_view(toks[0]))
+    .and_then([&](std::int32_t n) {
+      return parse<std::int32_t>(std::string_view(toks[2]))
+        .and_then([&](std::int32_t m) -> std::optional<std::int32_t> {
+          switch (toks[1][0]) {
+          case '+':
+            return n + m;
+          case '-':
+            return n - m;
+          case '*':
+            return n * m;
+          case '/':
+            return n / m;
+          default:
+            return std::nullopt;
+          }
+        });
+    });
+}
+
+int main() {
+  using namespace std::string_view_literals;
+  assert(read_expr("1 + 2"sv) == std::optional(1 + 2));
+  assert(read_expr("478 - 234"sv) == std::optional(478 - 234));
+  assert(read_expr("15 * 56"sv) == std::optional(15 * 56));
+  assert(read_expr("98 / 12"sv) == std::optional(98 / 12));
+}
+```
+
+- [Compiler Explorer での実行例](https://godbolt.org/z/q1j1jsGoh)
+
+### 括弧...多くない?
+
+失敗し得る操作を記述している部分だけ抜き出してみます。
+
+```cpp
+  return parse<std::int32_t>(std::string_view(toks[0]))
+    .and_then([&](std::int32_t n) {
+      return parse<std::int32_t>(std::string_view(toks[2]))
+        .and_then([&](std::int32_t m) -> std::optional<std::int32_t> {
+          switch (toks[1][0]) {
+          case '+':
+            return n + m;
+          case '-':
+            return n - m;
+          case '*':
+            return n * m;
+          case '/':
+            return n / m;
+          default:
+            return std::nullopt;
+          }
+        });
+    });
+```
+
+確かに多いです (笑)。`and_then` を一度書くごとに、`and_then` のメンバ関数呼び出しで丸括弧 `()` が 1 つ、ラムダ式で波括弧 `{}` が 1 つ、計 2 つの括弧がネストされます。そのためにコードが少し読みづらくなっています。
