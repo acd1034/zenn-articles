@@ -325,7 +325,7 @@ constexpr auto transform(this Self&& self, F&& f);
 ```
 
 `transform` は呼び出し可能なオブジェクト `f` を受け取り、無効値はそのまま、有効値は `f` を適用した値をもつ有効値に変換するメソッドです。
-▼ 使用例
+**▼ 使用例**
 
 ```cpp
 int main() {
@@ -334,7 +334,7 @@ int main() {
 }
 ```
 
-▼ 実装例
+**▼ 実装例**
 
 ```cpp
 // @@ struct optional {
@@ -363,7 +363,7 @@ constexpr auto and_then(this Self&& self, F&& f);
 ```
 
 `and_then` も `transform` と同様に、呼び出し可能なオブジェクト `f` で有効値を変換するメソッドです。ただし、`and_then` で受け取る呼び出し可能オブジェクト `f` は、`optional` を返す必要があります。これによって、有効値を保持する `optional` に対して、失敗するかもしれない操作を行うことができます。
-▼ 使用例
+**▼ 使用例**
 
 ```cpp
 int main() {
@@ -378,7 +378,7 @@ int main() {
 }
 ```
 
-▼ 実装例
+**▼ 実装例**
 
 ```cpp
 // @@ struct optional {
@@ -411,7 +411,7 @@ constexpr auto or_else(this Self&& self, F&& f);
 ```
 
 `transform`, `and_then` が有効値を変換するメソッドであるのに対し、`or_else` は無効値を変換するメソッドです。`or_else` は引数を取らず、`optional<T>` を返す呼び出し可能オブジェクト `f` を受け取ります。そして有効値はそのまま、無効値は `f()` に変換します。
-▼ 使用例
+**▼ 使用例**
 
 ```cpp
 int main() {
@@ -421,7 +421,7 @@ int main() {
 }
 ```
 
-▼ 実装例
+**▼ 実装例**
 
 ```cpp
 // @@ struct optional {
@@ -439,7 +439,7 @@ int main() {
 
 ## モナド的操作の使用例
 
-モナド的操作の使用例として、空白区切りの二項演算を表す文字列を受け取り、計算結果の値を返す関数 `read_expr` を書いてみます。ここで `parse` は数字からなる文字列を受け取り、その数値を返す関数です。この関数は `optional` を返すことに留意して、`and_then` を用いて操作の継続を表します。
+モナド的操作の使用例として、空白区切りの二項演算を表す文字列を受け取り、計算結果の値を返す関数 `parse_expr` を書いてみます。ここで `parse` は数字からなる文字列を受け取り、その数値を返す関数です。この関数は `optional` を返すことに留意して、`and_then` を用いて操作の継続を表します。
 
 ```cpp
 #include <cassert>
@@ -449,71 +449,60 @@ int main() {
 #include <ranges>
 #include <string_view>
 #include <vector>
+using namespace std; // 見やすさのため
 
-template <std::integral Int>
-constexpr auto parse(std::string_view sv) -> std::optional<Int> {
+template <integral Int>
+constexpr auto parse(string_view sv) -> optional<Int> {
   Int n{};
-  auto [ptr, ec] = std::from_chars(sv.data(), sv.data() + sv.size(), n);
-  if (ec == std::errc{} and ptr == sv.data() + sv.size())
+  auto [ptr, ec] = from_chars(sv.data(), sv.data() + sv.size(), n);
+  if (ec == errc{} and ptr == sv.data() + sv.size())
     return n;
   else
-    return std::nullopt;
+    return nullopt;
 }
 
-constexpr auto read_expr(std::string_view sv) {
-  const auto toks =
-    sv | std::views::split(' ') | std::ranges::to<std::vector>();
-  return parse<std::int32_t>(std::string_view(toks[0]))
-    .and_then([&](std::int32_t n) {
-      return parse<std::int32_t>(std::string_view(toks[2]))
-        .and_then([&](std::int32_t m) -> std::optional<std::int32_t> {
+constexpr auto parse_expr(string_view sv) {
+  const auto toks = sv | views::split(' ') | ranges::to<vector>();
+  return parse<int32_t>(string_view(toks[0]))
+    .and_then([&](int32_t n) {
+      return parse<int32_t>(string_view(toks[2]))
+        .and_then([&](int32_t m) -> optional<int32_t> {
           switch (toks[1][0]) {
-          case '+':
-            return n + m;
-          case '-':
-            return n - m;
-          case '*':
-            return n * m;
-          case '/':
-            return n / m;
-          default:
-            return std::nullopt;
+            case '+': return n + m;
+            case '-': return n - m;
+            case '*': return n * m;
+            case '/': return n / m;
+            default:  return nullopt;
           }
         });
     });
 }
 
 int main() {
-  using namespace std::string_view_literals;
-  assert(read_expr("1 + 2"sv) == std::optional(1 + 2));
-  assert(read_expr("478 - 234"sv) == std::optional(478 - 234));
-  assert(read_expr("15 * 56"sv) == std::optional(15 * 56));
-  assert(read_expr("98 / 12"sv) == std::optional(98 / 12));
+  assert(parse_expr("1 + 2"sv) == optional(1 + 2));
+  assert(parse_expr("478 - 234"sv) == optional(478 - 234));
+  assert(parse_expr("15 * 56"sv) == optional(15 * 56));
+  assert(parse_expr("98 / 12"sv) == optional(98 / 12));
 }
 ```
 
-- [Compiler Explorer での実行例](https://godbolt.org/z/q1j1jsGoh)
+- [Compiler Explorer での実行例](https://godbolt.org/z/4Kv8hjr9v)
 
 ### 括弧...多くない?
 
 失敗し得る操作を記述している部分だけ抜き出してみます。
 
 ```cpp
-  return parse<std::int32_t>(std::string_view(toks[0]))
-    .and_then([&](std::int32_t n) {
-      return parse<std::int32_t>(std::string_view(toks[2]))
-        .and_then([&](std::int32_t m) -> std::optional<std::int32_t> {
+  return parse<int32_t>(string_view(toks[0]))
+    .and_then([&](int32_t n) {
+      return parse<int32_t>(string_view(toks[2]))
+        .and_then([&](int32_t m) -> optional<int32_t> {
           switch (toks[1][0]) {
-          case '+':
-            return n + m;
-          case '-':
-            return n - m;
-          case '*':
-            return n * m;
-          case '/':
-            return n / m;
-          default:
-            return std::nullopt;
+            case '+': return n + m;
+            case '-': return n - m;
+            case '*': return n * m;
+            case '/': return n / m;
+            default:  return nullopt;
           }
         });
     });
