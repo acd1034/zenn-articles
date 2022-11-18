@@ -629,3 +629,28 @@ fn parse_expr(s: &str) -> Option<i32> {
 ```
 
 :::
+
+### C++ でも同じ書き方はできないの?
+
+現時点ではできません。しかし Rust と同様のエラー伝播演算子の導入が提案されています。
+
+- [P2561 An error propagation operator](https://wg21.link/p2561)
+
+C++23 策定終了まで残りわずかですが、言語機能を設計する作業グループでは、この提案にリソースを投入することに合意がとれているようです[^consensus]。もしかしたら将来、C++でもこのような記法が実現されるかもしれません。
+
+```cpp
+constexpr auto parse_expr(string_view sv) -> optional<int32_t> {
+  const auto toks = sv | views::split(' ') | ranges::to<vector>();
+  auto n = parse<int32_t>(string_view(toks[0]))??;
+  auto m = parse<int32_t>(string_view(toks[2]))??;
+  switch (toks[1][0]) {
+    case '+': return n + m;
+    case '-': return n - m;
+    case '*': return n * m;
+    case '/': return n / m;
+    default:  return nullopt;
+  }
+}
+```
+
+[^consensus]: https://github.com/cplusplus/papers/issues/1276#issuecomment-1310804047
