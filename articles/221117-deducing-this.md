@@ -159,7 +159,7 @@ void f() {
   }
   ```
 
-  この仕様は武器にもなりますが、意図せぬ動作を引き起こす凶器にもなり得ます。
+  この仕様は武器にもなりますが、意図せぬ動作を引き起こす凶器にもなり得ます。<!-- くどい? -->
 
 <!-- TODO: メンバ関数ポインタの型について -->
 
@@ -509,3 +509,123 @@ int main() {
 ```
 
 確かに多いです (笑)。`and_then` を一度書くごとに、`and_then` のメンバ関数呼び出しで丸括弧 `()` が 1 つ、ラムダ式で波括弧 `{}` が 1 つ、計 2 つの括弧がネストされます。そのためにコードが少し読みづらくなっています。
+
+### 他の言語の場合
+
+一方、他の言語で `parse_expr` を記述した場合は、どうなるのでしょうか。ここでは Haskell と Rust の実装例を見てみたいと思います。
+**▼ Haskell の場合**
+
+```hs
+import Control.Exception
+import Text.Read
+
+parseExpr :: String -> Maybe Int
+parseExpr s = do
+  let [tok0, tok1, tok2] = words s
+  n <- readMaybe tok0 :: Maybe Int
+  m <- readMaybe tok2 :: Maybe Int
+  case tok1 of
+    "+" -> Just $ n + m
+    "-" -> Just $ n - m
+    "*" -> Just $ n * m
+    "/" -> Just $ n `div` m
+    _   -> Nothing
+
+main :: IO ()
+main = do
+  assert (parseExpr "1 + 2" == (Just $ 1 + 2)) $
+    assert (parseExpr "478 - 234" == (Just $ 478 - 234)) $
+    assert (parseExpr "15 * 56" == (Just $ 15 * 56)) $
+    assert (parseExpr "98 / 12" == (Just $ 98 `div` 12)) $
+    return ()
+```
+
+**▼ Rust の場合**
+
+```rust
+fn parse_expr(s: &str) -> Option<i32> {
+  let toks: Vec<_> = s.split_whitespace().collect();
+  let n: i32 = toks[0].parse().ok()?;
+  let m: i32 = toks[2].parse().ok()?;
+  match toks[1] {
+    "+" => Some(n + m),
+    "-" => Some(n - m),
+    "*" => Some(n * m),
+    "/" => Some(n / m),
+    _   => None,
+  }
+}
+
+fn main() {
+  assert!(parse_expr("1 + 2") == Some(1 + 2));
+  assert!(parse_expr("478 - 234") == Some(478 - 234));
+  assert!(parse_expr("15 * 56") == Some(15 * 56));
+  assert!(parse_expr("98 / 12") == Some(98 / 12));
+}
+```
+
+わざと C++ の例と同じロジックで記述し、変数名や `optional` (Haskell では `Maybe`, Rust では `Option`) の使用箇所も揃えてあります。Haskell や Rust の方が随分すっきりした見た目に見えるのではないでしょうか。実は Haskell や Rust の簡潔な見た目の裏側には、強力な言語機能の存在があります。<!-- くどい? -->
+
+Haskell では、**do 記法** (_do notation_) と呼ばれる構文を使用することができます。これは、モナド則をみたすオブジェクトに対して実行する `and_then` (Haskell では中置記法の二項演算子 `>>=`) で記述される連続操作を、簡潔に書き下すための糖衣構文です。
+
+```hs
+-- Haskell ではこのコードを
+mx >>= (\x -> f x >>= (\y -> g x y))
+-- こう書くことができる
+do { x <- mx; y <- f x; g x y }
+```
+
+Rust は言語としてモナドをサポートしている訳ではありませんが、**エラー伝播演算子 `?`** (_error propagation operator_) を使用することができます。これは、オブジェクトがある条件をみたす場合に操作を続行し、そうでない場合に中断して早期リターンするための演算子です。
+
+```rust
+fn parse_expr(o: Option<_>) -> Option<_> {
+  // このコードは
+  o?
+  // こう展開されるイメージ (厳密ではない)
+  match o {
+    Some(v) => v,
+    None => return None,
+  }
+}
+```
+
+Haskell や Rust ではこれらの言語機能が括弧のネストを減らすことに貢献しています。
+
+:::details 余談: do 記法やエラー伝播演算子を使用せずに書くこともできます
+▼ Haskell の場合
+
+```hs
+import Control.Exception
+import Text.Read
+
+parseExpr :: String -> Maybe Int
+parseExpr s =
+  let [tok0, tok1, tok2] = words s in
+    (readMaybe tok0 :: Maybe Int) >>= \n ->
+      (readMaybe tok2 :: Maybe Int) >>= \m ->
+        case tok1 of
+          "+" -> Just $ n + m
+          "-" -> Just $ n - m
+          "*" -> Just $ n * m
+          "/" -> Just $ n `div` m
+          _ -> Nothing
+```
+
+▼ Rust の場合
+
+```rust
+fn parse_expr(s: &str) -> Option<i32> {
+  let toks: Vec<_> = s.split_whitespace().collect();
+  toks[0].parse().ok().and_then(|n: i32| {
+    toks[2].parse().ok().and_then(|m: i32| match toks[1] {
+      "+" => Some(n + m),
+      "-" => Some(n - m),
+      "*" => Some(n * m),
+      "/" => Some(n / m),
+      _ => None,
+    })
+  })
+}
+```
+
+:::
