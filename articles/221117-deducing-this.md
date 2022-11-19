@@ -226,6 +226,7 @@ void foo(X& x) {
 `std::vector`, `std::tuple`, `std::optional` のような、値を所有するクラスの値の参照を簡単に書くことができるようになります。ここでは簡易的な `tuple` の実装を紹介します。
 
 ```cpp
+// clang-format off
 #include <type_traits>
 #include <utility>
 // for main
@@ -243,20 +244,18 @@ namespace ns {
   struct tuple;
 
   template <std::size_t I, class T>
-  constexpr tuple_leaf<I, T> at_index(const tuple_leaf<I, T>&);
+  constexpr tuple_leaf<I, T> at_index(const tuple_leaf<I, T>&); // undefined
 
   template <std::size_t I, class... Ts>
-  struct tuple_index {
-    using type = decltype(at_index<I>(
+  using tuple_index = decltype(at_index<I>(
       std::declval<tuple<std::index_sequence_for<Ts...>, Ts...>>()));
-  };
 
   template <std::size_t... Is, class... Ts>
   struct tuple<std::index_sequence<Is...>, Ts...> : tuple_leaf<Is, Ts>... {
     template <std::size_t I, class Self>
     requires (I < sizeof...(Ts))
     constexpr decltype(auto) get(this Self&& self) {
-      using leaf = typename tuple_index<I, Ts...>::type;
+      using leaf = tuple_index<I, Ts...>;
       return std::forward_like<Self>(static_cast<leaf&>(self).value);
     }
   };
@@ -266,7 +265,7 @@ namespace ns {
 } // namespace ns
 
 int main() {
-  ns::tuple t{0, 3.14, std::string("hello")};
+  ns::tuple t{1, 3.14, std::string("hello")};
   std::cout << std::format("({}, {}, {})\n",
                            t.template get<0>(),
                            t.template get<1>(),
