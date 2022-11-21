@@ -73,7 +73,7 @@ template <class> concept anything = true;
 何の制約も持たないパラメタにつけることで、意味ありげな雰囲気を醸し出すことができます。なんかかっこいいですね。
 
 ```cpp
-inline constexpr auto do_nothing = [](anything auto&& x) {
+inline constexpr auto identity = [](anything auto&& x) -> decltype(x)&& {
   return static_cast<decltype(x)&&>(x);
 };
 ```
@@ -83,10 +83,10 @@ inline constexpr auto do_nothing = [](anything auto&& x) {
 ```cpp
 template <class> concept nothing = false;
 
-template <typename A>
-class absolute {
-  static_assert(nothing<A>); // 断固たる決意をもって実体化を禁ずる
-};
+template <class T>
+std::add_rvalue_reference_t<T> declval() noexcept {
+  static_assert(nothing<T>, "declval not allowed in an evaluated context");
+}
 ```
 
 ## `similar_to`
@@ -131,10 +131,10 @@ template <class T>
 concept rvalue_range = rvalue<T> and std::ranges::range<T>;
 
 constexpr auto accumulate(std::ranges::range auto& r, auto init) {
-  return std::fold_left(r, std::move(init), std::plus{});
+  return std::ranges::fold_left(r, std::move(init), std::plus{});
 }
 
 constexpr auto accumulate(rvalue_range auto&& r, auto init) {
-  return std::fold_left(r | std::views::as_rvalue, std::move(init), std::plus{});
+  return std::ranges::fold_left(r | std::views::as_rvalue, std::move(init), std::plus{});
 }
 ```
