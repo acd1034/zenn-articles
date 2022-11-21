@@ -12,22 +12,18 @@ namespace ns {
     T value;
   };
 
-  template <class Seq, class... Ts>
-  struct tuple;
-
   template <std::size_t I, class T>
   constexpr tuple_leaf<I, T> at_index(const tuple_leaf<I, T>&); // undefined
 
-  template <std::size_t I, class... Ts>
-  using tuple_index = decltype(at_index<I>(
-      std::declval<tuple<std::index_sequence_for<Ts...>, Ts...>>()));
+  template <class Seq, class... Ts>
+  struct tuple;
 
   template <std::size_t... Is, class... Ts>
   struct tuple<std::index_sequence<Is...>, Ts...> : tuple_leaf<Is, Ts>... {
     template <std::size_t I, class Self>
     requires (I < sizeof...(Ts))
     constexpr decltype(auto) get(this Self&& self) {
-      using leaf = tuple_index<I, Ts...>;
+      using leaf = decltype(at_index<I>(self));
       return std::forward_like<Self>(static_cast<leaf&>(self).value);
     }
   };
