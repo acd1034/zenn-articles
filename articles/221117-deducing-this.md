@@ -240,7 +240,7 @@ namespace ns {
   };
 
   template <std::size_t I, class T>
-  constexpr tuple_leaf<I, T> at_index(const tuple_leaf<I, T>&); // undefined
+  tuple_leaf<I, T> at_index(const tuple_leaf<I, T>&); // undefined
 
   template <class Seq, class... Ts>
   struct tuple;
@@ -268,7 +268,7 @@ int main() {
 }
 ```
 
-- [Compiler Explorer での実行例](https://godbolt.org/z/eGK5rK5Ko)
+- [Compiler Explorer での実行例](https://godbolt.org/z/6T56E6jza)
 
 ### 例 2: 完全転送 call wrapper
 

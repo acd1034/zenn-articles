@@ -13,7 +13,7 @@ namespace ns {
   };
 
   template <std::size_t I, class T>
-  constexpr tuple_leaf<I, T> at_index(const tuple_leaf<I, T>&); // undefined
+  tuple_leaf<I, T> at_index(const tuple_leaf<I, T>&); // undefined
 
   template <class Seq, class... Ts>
   struct tuple;
