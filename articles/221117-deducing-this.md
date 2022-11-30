@@ -1,6 +1,6 @@
 ---
 title: メンバ関数の新しい書き方、あるいは Deducing this
-emoji: 👪
+emoji: 👨‍👩‍👦
 type: tech
 topics: [cpp, cpp23]
 published: true

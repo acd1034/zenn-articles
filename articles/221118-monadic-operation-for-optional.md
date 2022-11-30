@@ -7,7 +7,7 @@ published: false
 ---
 
 :::message
-この記事は [C++ Advent Calendar 2022](https://qiita.com/advent-calendar/2022/cxx) の n 日目の記事です。
+この記事は [C++ Advent Calendar 2022](https://qiita.com/advent-calendar/2022/cxx) の 3 日目の記事です。
 :::
 
 - **概要**: 本記事では C++23 で `std::optional` に導入された、モナド的操作の機能と使用例を紹介しています。さらに他の言語との比較から、新たなエラー伝播の仕組みについても言及しています
