@@ -37,5 +37,5 @@ int main() {
   std::cout << std::format("({}, {}, {})\n",
                            t.template get<0>(),
                            t.template get<1>(),
-                           t.template get<2>()); // (0, 3.14, "hello") を出力
+                           t.template get<2>()); // (1, 3.14, "hello") を出力
 }
