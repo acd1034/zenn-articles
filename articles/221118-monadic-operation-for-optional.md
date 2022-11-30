@@ -14,7 +14,7 @@ published: false
 
 ## はじめに
 
-メンバ関数の新しい書き方、あるいは Deducing this <!-- TODO: リンク -->において、明示的オブジェクトパラメタと `std::forward_like` を用いることで、メンバ変数の転送を簡潔に記述できることを説明しました。その恩恵を受ける STL のクラスの 1 つ (そして [P0847 Deducing `this`](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p0847r7.html) でも度々取り上げられた例) として、`std::optional` が挙げられます。これは、`std::optional` が値を所有するクラスであり、クラスオブジェクトの値カテゴリで所有する値を転送する場面が頻出するためです。
+[メンバ関数の新しい書き方、あるいは Deducing this](https://zenn.dev/acd1034/articles/221117-deducing-this) において、明示的オブジェクトパラメタと `std::forward_like` を用いることで、メンバ変数の転送を簡潔に記述できることを説明しました。その恩恵を受ける STL のクラスの 1 つ (そして [P0847 Deducing `this`](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p0847r7.html) でも度々取り上げられた例) として、`std::optional` が挙げられます。これは、`std::optional` が値を所有するクラスであり、クラスオブジェクトの値カテゴリで所有する値を転送する場面が頻出するためです。
 
 一方、C++23 で `std::optional` に新たなメソッドが追加されました[^monadic-op]。それは `transform`, `and_then`, `or_else` の 3 種類であり、まとめてモナド的操作 (_monadic operation_) と呼ばれています。これらのメソッドも、明示的オブジェクトパラメタと `std::forward_like` を用いることで、簡潔に記述することができます。
 
