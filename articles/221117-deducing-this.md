@@ -336,10 +336,14 @@ int main() {
 
 <!-- TODO: 本記事の続きにあたる std::optional のモナド的操作 (後日公開予定) では、明示的オブジェクトパラメタを使用したメソッドの実装例を紹介しています。あわせて読んでみてください。 -->
 
-## 主要な参考文献
+## 参考文献
 
 - [P0847R7 Deducing `this`](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p0847r7.html)
 - [P2445R1 `std::forward_like`](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2022/p2445r1.pdf)
 - [［C++］WG21 月次提案文書を眺める（2020 年 10 月） - 地面を見下ろす少年の足蹴にされる私](https://onihusube.hatenablog.com/entry/2020/11/02/221657#P0847R5-Deducing-this)
-- [自己再帰するラムダ式 @ C++23 - yohhoy の日記](https://yohhoy.hatenadiary.jp/entry/20211025/p1)
 - [［C++］WG21 月次提案文書を眺める（2021 年 10 月） - 地面を見下ろす少年の足蹴にされる私](https://onihusube.hatenablog.com/entry/2021/11/13/193322#P2445R0-forward_like)
+
+### さらなる文献
+
+- [自己再帰するラムダ式 @ C++23 - yohhoy の日記](https://yohhoy.hatenadiary.jp/entry/20211025/p1)
+- [Copy-on-write with Deducing this - Barry's C++ Blog](https://brevzin.github.io/c++/2022/09/23/copy-on-write/)
