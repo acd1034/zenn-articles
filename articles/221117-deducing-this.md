@@ -262,11 +262,11 @@ int main() {
   std::cout << std::format("({}, {}, {})\n",
                            t.template get<0>(),
                            t.template get<1>(),
-                           t.template get<2>()); // (1, 3.14, "hello") を出力
+                           t.template get<2>()); // (1, 3.14, hello) を出力
 }
 ```
 
-- [Compiler Explorer での実行例](https://godbolt.org/z/z5o3coMb6)
+- [Compiler Explorer での実行例](https://godbolt.org/z/axdbcnoq7)
 
 ### 例 2: 完全転送 call wrapper
 
