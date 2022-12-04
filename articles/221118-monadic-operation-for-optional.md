@@ -8,6 +8,8 @@ published: true
 
 :::message
 この記事は [C++ Advent Calendar 2022](https://qiita.com/advent-calendar/2022/cxx) の 3 日目の記事です。
+« 2 日目 [Private namespace idiom は合法なのか](https://zenn.dev/wx257osn2/articles/is_private_namespace_valid-kjhfalufhawelif)
+» 4 日目 [C++20 のイテレータ事情](https://qiita.com/tomolatoon/items/3e14a3172261230ebe83)
 :::
 
 - **概要**: 本記事では C++23 で `std::optional` に導入された、モナド的操作の機能と使用例を紹介しています。さらに他の言語との比較から、新たなエラー伝播の仕組みについても言及しています

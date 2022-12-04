@@ -8,6 +8,7 @@ published: true
 
 :::message
 この記事は [C++ Advent Calendar 2022](https://qiita.com/advent-calendar/2022/cxx) の 1 日目の記事です。
+» 2 日目 [Private namespace idiom は合法なのか](https://zenn.dev/wx257osn2/articles/is_private_namespace_valid-kjhfalufhawelif)
 :::
 
 - **概要**: C++23 でクラスのメンバ関数の書き方が拡張された結果、明示的オブジェクトパラメタを使用することができるようになりました。本記事ではその機能の提案文書 [P0847R7 Deducing `this`](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p0847r7.html) の内容と、新たな機能の使い方について紹介しています
