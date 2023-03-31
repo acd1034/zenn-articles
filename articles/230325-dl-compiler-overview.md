@@ -163,5 +163,8 @@ published: false
 [^resnet]: [Deep Residual Learning for Image Recognition](https://arxiv.org/abs/1512.03385)
 [^tvm]: [TVM: An Automated End-to-End Optimizing Compiler for Deep Learning](https://arxiv.org/abs/1802.04799)
 [^halide]: [Decoupling algorithms from schedules for easy optimization of image processing pipelines](https://dl.acm.org/doi/pdf/10.1145/2185520.2185528)
+[^dnnfusion]: [DNNFusion: accelerating deep neural networks execution with advanced operator fusion](https://dl.acm.org/doi/10.1145/3453483.3454083)
+[^relaxed-graph]: [Optimizing DNN Computation with Relaxed Graph Substitutions](https://cs.stanford.edu/~matei/papers/2019/sysml_relaxed_graph_substitutions.pdf)
+[^xla]: [Operator Fusion in XLA: Analysis and Evaluation](https://arxiv.org/abs/2301.13062)
 
 <!-- 脚注の書き方^[[How to write footnotes](https://zenn.dev/zenn/articles/markdown-guide#%E6%B3%A8%E9%87%88)]。 -->
