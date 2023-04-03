@@ -243,7 +243,33 @@ TensorComprehension などの一部の深層学習コンパイラの低レベル
 ![](230325-dl-compiler-overview/polyhedral-base-conversion.jpg)
 _多面体コンパイルの実行例。(左上)変換前のループ。データ依存関係にある配列要素のインデックスがループカウンタ$i, j$のアフィン変換($i-1, j-1$)で表されている。(右)このループのループネストをタイル化し、並列化した場合のデータ依存関係の模式図[^tvm]。インデックスを取り替えることで並列化可能な要素を抽出することができる。(左下)最適化後のループ。$i=k-j$ と変換した結果、内側のループが辿る要素間のデータ依存関係が消失し、内側のループを並列化することができる。_
 
+## 深層学習コンパイラの具体例
+
+主要な深層学習コンパイラと、そこで用いられている高レベル中間表現・低レベル中間表現について紹介します。
+
+<!-- prettier-ignore -->
+| Icon | Compiler | Developer | High-level IR | Low-level IR |
+| --- | --- | --- | --- | --- |
+| ![](230325-dl-compiler-overview/xla.png) | XLA | Google | TensorFlow Graph・HLO | linalg dialect, vector dialect in MLIR |
+| ![](230325-dl-compiler-overview/tvm.png) | TVM | Apache | Relay IR | Halide IR |
+| ![](230325-dl-compiler-overview/tensor-comprehensions.png) | TensorComprehensions (archived) | Facebook | TC IR (Halide-based) | Polyhedral IR |
+| ![](230325-dl-compiler-overview/glow.png) | Glow | Facebook | Own high-level IR | Own low-level IR |
+
+- **XLA**: Google にて開発されている深層学習コンパイラであり、TensorFlow の一部です。TensorFlow では、TensorFlow Graph にてハードウェア非依存の最適化を行った後、HLO に変換されます。HLO は、ハードウェア固有の情報を表現できるほど細かい粒度を有し、高レベル中間表現と低レベル中間表現の両方の側面を持っています。また、TensorFlow は MLIR に接続可能なパスを備えており、MLIR において開発されている中間表現(linalg dialect や vector dialect)を利用した最適化を実行することができます。※ OpenXLA について考慮することはできていません
+- **TVM**: Apache が管理している深層学習コンパイラ。Relay IR は TVM にて用いられている高レベル中間表現であり、ラムダ式を用いた計算の表現により演算子のカスタマイズをサポートしている、固定された演算子の組み合わせに留まらない演算子融合が可能である、といった特徴を持ちます。また TVM は低レベル中間表現に Halide IR を使用しており、アルゴリズムから分離されたスケジュールプリミティブの定義や自動パラメタチューニングを可能としています
+- **TensorComprehensions**: Facebook にて開発されている深層学習コンパイラ (現在は開発停止)。Halide ベースの高レベル中間表現・多面体モデルを利用した低レベル中間表現を特徴としています
+
+![](230325-dl-compiler-overview/xla-tvm-tc.jpg)
+_各深層学習コンパイラのコンパイラスタック。(左上)TensorFlow ([CGO 2020 Talk](https://docs.google.com/presentation/d/11-VjSNNNJoRhPlLxFgvtb909it1WNdxTnQFipryfAPU/edit#slide=id.g7d334b12e5_0_211)) (右)TVM ([TVM Developer Documentation Feedback](https://github.com/apache/tvm/issues/2469#issuecomment-455940771)) (左下)TensorComprehensions ([Announcing Tensor Comprehensions](https://research.facebook.com/blog/2018/2/announcing-tensor-comprehensions/))_
+
 ## おわりに
+
+深層学習コンパイラの開発は近年急速に発展しており、日々新しい技術や手法が提案されています。本記事では深層学習コンパイラの全体像を知るために、主にコンパイラスタックと特有の最適化について調査しました。現在の深層学習コンパイラの一般的な設計は、高レベル中間表現と低レベル中間表現を組み合わせた多段階処理に基づいています。高レベル中間表現は深層学習モデルの計算グラフの表現に用いられ、ハードウェアに依存しない最適化を行います。低レベル中間表現は演算子ノードの表現に使用され、主にハードウェア固有の最適化を実行します。深層学習コンパイラの最適化には、演算子融合、メモリアクセス最適化、ループ最適化、ハードウェア固有マッピングなど、多くの技術が使用されています。これらの技術により、高速かつ効率的な深層学習モデルのコンパイルが実現されています。
+
+本記事で扱えなかったこととして、以下のことが挙げられます。
+
+- **具体的な深層学習コンパイラの設計**: 本記事では XLA・TVM・Glow などの最適化フレームワークを紹介しましたが、個々のコンパイラの設計の詳細については触れられませんでした。これらのコンパイラはそれぞれ異なる設計思想や特徴を持っており、中間表現スタックや最適化の詳細はまた異なった視点を与えてくれます
+- **MLIR**: MLIR とは、中間表現の設計と実装の簡素化を目的に開発された、ドメイン固有コンパイラを構築するための中間表現基盤です。TensorFlow において開発され、LLVM に寄贈されたという経緯を持ちます。MLIR は主に TensorFlow の内部で使用されており、柔軟で拡張可能な中間表現によって中間表現の開発を改善しています。MLIR はドメイン固有コンパイラの開発において大きな役割を担いつつありますが、その設計思想や有用性については、本記事では触れられませんでした
 
 本記事は正確を期していますが、筆者の不勉強のために誤りが含まれる可能性があります。お気づきの点がございましたらコメント頂けますと幸いです。
 
