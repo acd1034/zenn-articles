@@ -18,7 +18,7 @@ published: false
 
 タスクが複雑になり層が深くなるほど計算量は増大し、現実的な時間で終了しなくなることが想像されます。このことは、$10^{11}$ 個ものパラメタをもつ大規模言語モデルの存在から明らかです。他にも自動運転等のリアルタイムで推論結果を必要とするワークロードが存在することを考慮すると、実用化には高速化が欠かせません。
 
-本記事では、このような背景のもと発展したドメイン固有コンパイラ技術、とりわけ深層学習コンパイラの設計について言語化することを試みます。本記事は主に  [The Deep Learning Compiler: A Comprehensive Survey](https://ieeexplore.ieee.org/document/9222299)[^survey] に基づいています。
+本記事では、このような背景のもと発展したドメイン固有コンパイラ技術、とりわけ深層学習コンパイラの設計について言語化することを試みます。本記事は主に [The Deep Learning Compiler: A Comprehensive Survey](https://ieeexplore.ieee.org/document/9222299)[^survey] に基づいています。
 
 ## 深層学習ワークロードの特徴
 
@@ -29,7 +29,7 @@ published: false
 また、**演算子レベル構造**とは、低レベルなスカラ・ベクトル命令を用いて表される微視的な構造のことです。この階層は、高水準な演算ノード 1 つ 1 つに着目しており、その構造を低レベル命令を用いて表します。演算ノード自体ある程度の粒度を有するため、演算子レベル構造では演算ノードを最適化の対象とします。
 
 ![](230325-dl-compiler-overview/glow-ir.png)
-_Glow におけるグラフレベル構造(左)と演算子レベル構造(右)。[github.com/pytorch/glow](https://github.com/pytorch/glow) より引用。_
+_深層学習ワークロードの特徴的な表現。(左)グラフレベル構造。(右)演算子レベル構造。一例として Glow から得られる表現を掲載。[github.com/pytorch/glow](https://github.com/pytorch/glow) より引用。_
 
 ![](230325-dl-compiler-overview/dl-compiler-stack.jpg)
 _深層学習コンパイラの典型的なコンパイラスタック。深層学習コンパイラは深層学習モデルを入力とし、CPU/GPU/TPU 等のハードウェア向けのコードを生成する。深層学習コンパイラにおける解析・最適化は主に高レベル中間表現と低レベル中間表現の 2 つの中間表現を経る。[AutoKernel: To know more about AI Compiler](https://autokernel-docs-en.readthedocs.io/en/latest/blog/ai_compiler%20overview.html) 等を参考に作成。_
