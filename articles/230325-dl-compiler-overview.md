@@ -28,6 +28,9 @@ published: false
 
 また、**演算子レベル構造**とは、低レベルなスカラ・ベクトル命令を用いて表される微視的な構造のことです。この階層は、高水準な演算ノード 1 つ 1 つに着目しており、その構造を低レベル命令を用いて表します。演算ノード自体ある程度の粒度を有するため、演算子レベル構造では演算ノードを最適化の対象とします。
 
+![](230325-dl-compiler-overview/glow-ir.png)
+_Glow におけるグラフレベル構造(左)と演算子レベル構造(右)。[github.com/pytorch/glow](https://github.com/pytorch/glow) より引用。_
+
 ![](230325-dl-compiler-overview/dl-compiler-stack.jpg)
 _深層学習コンパイラの典型的なコンパイラスタック。深層学習コンパイラは深層学習モデルを入力とし、CPU/GPU/TPU 等のハードウェア向けのコードを生成する。深層学習コンパイラにおける解析・最適化は主に高レベル中間表現と低レベル中間表現の 2 つの中間表現を経る。[AutoKernel: To know more about AI Compiler](https://autokernel-docs-en.readthedocs.io/en/latest/blog/ai_compiler%20overview.html) 等を参考に作成。_
 
