@@ -6,7 +6,7 @@ topics: [コンパイラ]
 published: false
 ---
 
-- **概要**:
+- **概要**: 深層学習コンパイラのサーベイ論文 [The Deep Learning Compiler: A Comprehensive Survey](https://ieeexplore.ieee.org/document/9222299) を基に、深層学習コンパイラの典型的なコンパイラスタックと最適化について説明しています
 
 ## はじめに
 
