@@ -3,7 +3,7 @@ title: 深層学習コンパイラスタックと最適化
 emoji: ⚙️
 type: tech
 topics: [コンパイラ]
-published: false
+published: true
 ---
 
 - **概要**: 深層学習コンパイラのサーベイ論文 [The Deep Learning Compiler: A Comprehensive Survey](https://ieeexplore.ieee.org/document/9222299) を基に、深層学習コンパイラの典型的なコンパイラスタックと最適化について説明しています
@@ -287,5 +287,3 @@ _各深層学習コンパイラのコンパイラスタック。(左上)TensorFl
 [^dnnfusion]: [DNNFusion: accelerating deep neural networks execution with advanced operator fusion](https://dl.acm.org/doi/10.1145/3453483.3454083)
 [^relaxed-graph]: [Optimizing DNN Computation with Relaxed Graph Substitutions](https://cs.stanford.edu/~matei/papers/2019/sysml_relaxed_graph_substitutions.pdf)
 [^xla]: [Operator Fusion in XLA: Analysis and Evaluation](https://arxiv.org/abs/2301.13062)
-
-<!-- 脚注の書き方^[[How to write footnotes](https://zenn.dev/zenn/articles/markdown-guide#%E6%B3%A8%E9%87%88)]。 -->
