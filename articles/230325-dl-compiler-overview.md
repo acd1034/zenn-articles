@@ -28,10 +28,10 @@ published: false
 
 また、**演算子レベル構造**とは、低レベルなスカラ・ベクトル命令を用いて表される微視的な構造のことです。この階層は、高水準な演算ノード 1 つ 1 つに着目しており、その構造を低レベル命令を用いて表します。演算ノード自体ある程度の粒度を有するため、演算子レベル構造では演算ノードを最適化の対象とします。
 
-![](230325-dl-compiler-overview/glow-ir.png)
+![](/images/230325-dl-compiler-overview/glow-ir.png)
 _深層学習ワークロードの特徴的な表現。(左)グラフレベル構造。(右)演算子レベル構造。例として深層学習コンパイラの 1 つである Glow から得られる表現を掲載。[github.com/pytorch/glow](https://github.com/pytorch/glow) より引用。_
 
-![](230325-dl-compiler-overview/dl-compiler-stack.jpg)
+![](/images/230325-dl-compiler-overview/dl-compiler-stack.jpg)
 _深層学習コンパイラの典型的なコンパイラスタック。深層学習コンパイラは深層学習モデルを入力とし、CPU/GPU/TPU 等のハードウェア向けのコードを生成する。深層学習コンパイラにおける解析・最適化は主に高レベル中間表現と低レベル中間表現の 2 つの中間表現を経る。[AutoKernel: To know more about AI Compiler](https://autokernel-docs-en.readthedocs.io/en/latest/blog/ai_compiler%20overview.html) 等を参考に作成。_
 
 それぞれの構造の特徴と、それが可能とする最適化の例を箇条書きで示します:
@@ -114,12 +114,12 @@ _深層学習コンパイラの典型的なコンパイラスタック。深層�
   - テンソルの形状変換の順序変更: 例えば Pooling によってテンソルの要素数が減少する場合に、他の演算の前に Pooling を先に実行します
     $$\mathrm{MaxPool}(A^\top)=(\mathrm{MaxPool}(A))^\top$$
     :::
-    ![](230325-dl-compiler-overview/algebraic-simplify.png)
+    ![](/images/230325-dl-compiler-overview/algebraic-simplify.png)
     _代数法則を活用した最適化の例[^dnnfusion]。(a)では結合法則、(b)では分配法則を利用し計算回数を削減する。(c)では ReduceSum により要素数が減ることを考慮し、演算子の交換法則を利用して計算回数を削減する。_
 
 **演算子融合:** 演算子融合は深層学習コンパイラにおける主要な最適化手法の 1 つです。複数の演算子を 1 つにまとめることで、計算時間やメモリ消費量を削減し、実行効率を向上させます。例えば畳み込みニューラルネットワークでは畳み込み演算と活性化関数の演算が頻繁に行われますが、これらの演算子を融合することで、より効率的な計算が可能となります。演算子融合によって、中間結果のメモリアクセスが削減され、メモリ帯域幅のボトルネックが緩和されるため、高速な計算が可能となります。
 
-![](230325-dl-compiler-overview/operator-fusion-concept.png)
+![](/images/230325-dl-compiler-overview/operator-fusion-concept.png)
 _演算子融合の概念図。(左) $R=(A+sB)*C$ を表す計算グラフ。(右上)計算グラフをそのまま低レベル命令に書き下した場合の疑似コード。演算ノードを 1 つずつ実行する場合、計算結果を逐一メモリに書き込むため、メモリレイテンシが発生する。(右下)演算子融合後の計算グラフを低レベル命令に書き下した場合の疑似コード。一時メモリへの書き込み・読み出しがなくなるため高速な計算が可能となる。[Architecture of ML Systems - 05 Compilation and Optimization](https://mboehm7.github.io/teaching/fs22_amls/index.htm) より引用。_
 
 演算子の融合戦略は複数考えられますが、ここでは例として、TVM という深層学習コンパイラにおける演算子の融合戦略について説明します[^tvm]。TVM では演算子融合に際し、演算子を
@@ -138,15 +138,15 @@ _演算子融合の概念図。(左) $R=(A+sB)*C$ を表す計算グラフ。(�
 
 例えば以下の図のように入力の Conv と出力の BatchNorm, ReLU を 1 つの演算ノードに融合することができます。
 
-![](230325-dl-compiler-overview/operator-fusion-tvm.png)
+![](/images/230325-dl-compiler-overview/operator-fusion-tvm.png)
 _TVM における演算子の融合戦略と融合例[^tvm-end]。(上段)入力の Conv と出力の BatchNorm, ReLU を融合できる。(中段)Add と Sqrt を融合できる。(下段)入力の Exp と出力の Sum を融合できる。_
 
 **データレイアウト変換**: 計算グラフにおいてテンソルを保持する最適なデータレイアウトを探索し、レイアウト変換ノードをグラフに挿入します。ここで最適なレイアウトはハードウェア依存しています。例えば GPU 上では NCHW 形式のデータレイアウトにおいて高速に動作します (ここで NCHW とはバッチ内の画像数$N$、高さ方向の画素数$H$、幅方向の画素数$W$、チャンネル数$C$(グレースケールの場合$C=1$、RGB の場合$C=3$)を格納する順番を指します)。他にもアクセラレータの中には、ハードウェア固有命令やキャッシュの都合上より複雑なデータレイアウトを好むものも存在します。
 
-![](230325-dl-compiler-overview/layout-format.png)
+![](/images/230325-dl-compiler-overview/layout-format.png)
 _各フォーマットにおける GPU メモリへの格納のされ方。(左)CHW フォーマットの場合。色が同じデータが隣接して格納されている。(右)HWC フォーマットの場合。座標が同じデータが隣接して格納されている。畳み込み等の演算において異なるチャンネル間の混成は生じないため、一般に CHW フォーマットの方が高速に演算を実行できる。[NVIDIA TensorRT Developer Guide](https://docs.nvidia.com/deeplearning/tensorrt/developer-guide/index.html) より引用。_
 
-![](230325-dl-compiler-overview/layout-conversion.png)
+![](/images/230325-dl-compiler-overview/layout-conversion.png)
 _レイアウト変換の例。Reshape 以外の演算は NHWC フォーマットから NCHW フォーマットに変換されている。NHWC フォーマットから NCHW フォーマット(あるいは逆)への変換が必要な箇所にレイアウト変換ノードが挿入されている。[TensorFlow Graph Optimization](https://web.stanford.edu/class/cs245/slides/TFGraphOptimizationsStanford.pdf) より引用。_
 
 <!-- #### その他の役割: 意味解析 - 形状推 - 暗黙のブロードキャストの明示化 -->
@@ -159,22 +159,22 @@ _レイアウト変換の例。Reshape 以外の演算は NHWC フォーマッ�
 
 **ハードウェア固有のマッピング**: 低レベル中間表現で記述された特定の命令パターンを、ハードウェア上で高度に最適化されたカーネルに置き換えます。
 
-![](230325-dl-compiler-overview/hardware-intrinsic-mapping.png)
+![](/images/230325-dl-compiler-overview/hardware-intrinsic-mapping.png)
 _ハードウェア固有のマッピングの模式図[^survey]。$8\times 8$行列の行列積をハードウェア固有のカーネルに置き換える。_
 
 **メモリ階層へのアクセスの調整**: 計算機のメモリは、容量は大きいが遅延が大きいメモリと、容量は小さいが遅延が小さいキャッシュを用いた階層構造を持ちます。このメモリ階層はプロセッサごとに異なるため、ハードウェア専用の最適化が必要です。CPU ではプリフェッチや効率的にデータを追い出すハードウェア機能によって効率的なメモリアクセスが暗黙的に実現されます。一方 GPU は共有メモリとローカルメモリを有し、メモリ割り当てをコンパイラとハードウェアが担う箇所が混在しています。また高度なキャッシュを持たないアクセラレータでは、コンパイラがデータ再利用性の高いメモリキャッシュを決定します。
 
-![](230325-dl-compiler-overview/memory-architecture.png)
+![](/images/230325-dl-compiler-overview/memory-architecture.png)
 _CPU・GPU・TPU のメモリアーキテクチャと演算の基本単位[^tvm]。このようなハードウェアの多様性を考慮したコードを生成することがコンパイラには求められる。_
 
 **メモリレイテンシの隠蔽**: パイプラインを再構成し、メモリアクセスと計算の実行を可能な限り並列化することでメモリアクセスに由来する遅延を隠蔽します。CPU ではハードウェアプリフェッチ、GPU ではワープコンテキストスイッチといったハードウェアの機能によってメモリレイテンシの隠蔽は暗黙的に実現されます。一方高度なパイプラインを持たないアクセラレータの場合は、コンパイラがデータ依存関係を解析し、命令の同期やスケジューリングを実行する必要があります。
 
-![](230325-dl-compiler-overview/memory-latency-hiding.png)
+![](/images/230325-dl-compiler-overview/memory-latency-hiding.png)
 _メモリアクセスレイテンシ隠蔽の模式図[^tvm]。ハードウェアにおいてメモリアクセスと実行を分離し、メモリと計算をオーバーラップさせることで、多くのメモリアクセスレイテンシを隠蔽することができる。_
 
 **ループ最適化**: ループはプログラムの大部分を占めるため、ループ最適化はプログラムの実行効率を向上させるために非常に重要な手法です。ループ最適化には、ループ融合、sliding window、タイル化、ループ交換およびループ展開などがあります。
 
-![](230325-dl-compiler-overview/loop-optimization.png)
+![](/images/230325-dl-compiler-overview/loop-optimization.png)
 _各ループ最適化 (ループ融合、ループ交換、ループ展開、sliding window およびタイル化) の模式図[^survey]。_
 
 :::details ループ最適化の詳細
@@ -183,7 +183,7 @@ _各ループ最適化 (ループ融合、ループ交換、ループ展開、sl
 - Sliding window: Halide で考案された最適化。中心的なコンセプトは、必要なときに値を計算し、必要なくなるまでデータを再利用するというもの
 - タイル化: ループをいくつかのタイルに分割することで、タイルをハードウェアキャッシュに適合させ、タイル内のデータ局所性を向上させる
 
-  ![](230325-dl-compiler-overview/tiling.png)
+  ![](/images/230325-dl-compiler-overview/tiling.png)
   _タイル化を行わない場合と行う場合のキャッシュミスの頻度の比較。(左)タイル化を行わない場合。常にキャッシュミスが生じている。(右)タイルサイズ 4 のタイル化を行った場合。キャッシュミスの頻度は 25%にまで減少する。[HOW Series “Deep Dive”: Webinars on Performance Optimization - 2017 Edition - Session 10](https://colfaxresearch.com/how-series/#ses-10) より引用。_
 
 - ループ交換: ネストされたループの反復順序を変更することで、メモリアクセスを最適化し、空間局所性を向上させる
@@ -236,17 +236,17 @@ s[C].parallel(C.op.axis[0])
 
 _TVM を用いてベクトルの加算を並列化する例。_
 
-![](230325-dl-compiler-overview/tvm-halide-ir.jpg)
+![](/images/230325-dl-compiler-overview/tvm-halide-ir.jpg)
 _(左)TVM を用いて演算子を記述する流れと、各段階において生成される中間表現の疑似コード[^tvm]。(1 つ目の疑似コード)スケジューリングを行わない場合。(2 つ目)ループをサイズ$128\times 8$にタイル化した場合。(3 つ目)さらにバッファへのキャッシュを行いハードウェア固有命令を用いた場合。(右)Halide ベースの中間表現における並列化の概念図[^survey]。与えられたスケジュールに基づき並列化を実行する。最適化パラメタは自動でチューニングされる。_
 
 **多面体コンパイルに基づく中間表現**: 多面体コンパイルとは、多面体モデルに基づくループ最適化手法の 1 つです。ネストしたループのループ境界がループカウンタのアフィン変換で書けるとき、ループが構成するループカウンタの組み合わせ (反復空間) は多面体の格子点として表されます。またデータ依存関係にある配列要素のインデックスがループカウンタのアフィン変換で書ける場合、要素間のデータ依存関係は反復空間を区切るメッシュのように表すことができます。多面体モデルはこのような直線的な構造を利用したループ最適化を可能とします。多面体モデルを用いることで、ループ融合、タイル化、ループ交換およびループ展開といった種々のループ最適化を統一的に表現できるという利点があります。
 
-![](230325-dl-compiler-overview/polyhedral-bound.jpg)
+![](/images/230325-dl-compiler-overview/polyhedral-bound.jpg)
 _(左)ループ境界がループカウンタ$i$のアフィン変換で書ける例。(右)左の例におけるループの反復空間。反復空間は連立不等式 $i≤n, j=1, j≤i$ によって構成される三角形をなす。_
 
 TensorComprehension などの一部の深層学習コンパイラの低レベル中間表現では、多面体コンパイルに基づく中間表現が採用されています。この中間表現の特徴として、自動で並列性を抽出しスケジューリングを実行できることが挙げられます。
 
-![](230325-dl-compiler-overview/polyhedral-base-conversion.jpg)
+![](/images/230325-dl-compiler-overview/polyhedral-base-conversion.jpg)
 _多面体コンパイルの実行例。(左上)変換前のループ。データ依存関係にある配列要素のインデックスがループカウンタ$i, j$のアフィン変換($i-1, j-1$)で表されている。(右)このループのループネストをタイル化し、並列化した場合のデータ依存関係の模式図[^survey]。インデックスを取り替えることで並列化可能な要素を抽出することができる。(左下)最適化後のループ。$i=k-j$ と変換した結果、内側のループが辿る要素間のデータ依存関係が消失し、内側のループを並列化することができる。_
 
 ## 深層学習コンパイラの具体例
@@ -256,16 +256,16 @@ _多面体コンパイルの実行例。(左上)変換前のループ。デー�
 <!-- prettier-ignore -->
 | Icon | Compiler | Developer | High-level IR | Low-level IR |
 | --- | --- | --- | --- | --- |
-| ![](230325-dl-compiler-overview/xla.png) | XLA | Google | TensorFlow Graph・HLO | linalg dialect, vector dialect in MLIR |
-| ![](230325-dl-compiler-overview/tvm.png) | TVM | Apache | Relay IR | Halide IR |
-| ![](230325-dl-compiler-overview/tensor-comprehensions.png) | TensorComprehensions (archived) | Facebook | TC IR (Halide-based) | Polyhedral IR |
-| ![](230325-dl-compiler-overview/glow.png) | Glow | Facebook | Own high-level IR | Own low-level IR |
+| ![](/images/230325-dl-compiler-overview/xla.png) | XLA | Google | TensorFlow Graph・HLO | linalg dialect, vector dialect in MLIR |
+| ![](/images/230325-dl-compiler-overview/tvm.png) | TVM | Apache | Relay IR | Halide IR |
+| ![](/images/230325-dl-compiler-overview/tensor-comprehensions.png) | TensorComprehensions (archived) | Facebook | TC IR (Halide-based) | Polyhedral IR |
+| ![](/images/230325-dl-compiler-overview/glow.png) | Glow | Facebook | Own high-level IR | Own low-level IR |
 
 - **XLA**: Google にて開発されている深層学習コンパイラであり、TensorFlow の一部です。TensorFlow では、TensorFlow Graph にてハードウェア非依存の最適化を行った後、HLO に変換されます。HLO は、ハードウェア固有の情報を表現できるほど細かい粒度を有し、高レベル中間表現と低レベル中間表現の両方の側面を持っています。また、TensorFlow は MLIR と呼ばれる中間表現基盤に接続可能なパスを備えており、MLIR において開発されている中間表現(linalg dialect や vector dialect)を利用した最適化を実行することができます。※ OpenXLA について考慮することはできていません
 - **TVM**: Apache が管理している深層学習コンパイラ。Relay IR は TVM にて用いられている高レベル中間表現であり、ラムダ式を用いた計算の表現により演算子のカスタマイズをサポートしている、固定された演算子の組み合わせに留まらない演算子融合が可能である、といった特徴を持ちます。また TVM は低レベル中間表現に Halide IR を使用しており、アルゴリズムから分離されたスケジュールプリミティブの定義や自動パラメタチューニングを可能としています
 - **TensorComprehensions**: Facebook にて開発されている深層学習コンパイラ (現在は開発停止)。Halide ベースの高レベル中間表現と多面体モデルを利用した低レベル中間表現を特徴としています
 
-![](230325-dl-compiler-overview/xla-tvm-tc.jpg)
+![](/images/230325-dl-compiler-overview/xla-tvm-tc.jpg)
 _各深層学習コンパイラのコンパイラスタック。(左上)TensorFlow (右)TVM (左下)TensorComprehensions [CGO 2020 Talk](https://docs.google.com/presentation/d/11-VjSNNNJoRhPlLxFgvtb909it1WNdxTnQFipryfAPU/edit#slide=id.g7d334b12e5_0_211), [TVM Developer Documentation Feedback](https://github.com/apache/tvm/issues/2469#issuecomment-455940771), [Announcing Tensor Comprehensions](https://research.facebook.com/blog/2018/2/announcing-tensor-comprehensions/) より引用。_
 
 ## おわりに
